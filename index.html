@@ -689,7 +689,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!link || !link.getAttribute) return false;
             const href = link.getAttribute('href') || '';
             const label = (link.textContent || '').replace(/\\s+/g, ' ').trim();
-            return /^mailto:/i.test(href) || /^email\\b/i.test(label) || /начать\\s*проект/i.test(label);
+            if (/начать\\s*проект/i.test(label)) return false;
+            return /^mailto:/i.test(href) || /^email\\b/i.test(label);
           }
           function findMailLink(e) {
             const path = e.composedPath ? e.composedPath() : [];
@@ -729,10 +730,87 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
             document.body.appendChild(overlay);
           }
+          function showProjectForm() {
+            if (document.getElementById('project-form')) return;
+            const overlay = document.createElement('div');
+            overlay.id = 'project-form';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;cursor:auto;';
+            overlay.innerHTML = '<div data-form-card="1" style="width:min(460px,100%);background:#0a0a0a;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;color:#fff;font-family:Geist Mono,ui-monospace,monospace;">'
+              + '<form novalidate="novalidate">'
+              + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:8px;">Начать проект</div>'
+              + '<div style="font-size:18px;margin-bottom:22px;letter-spacing:-0.02em;">Оставьте контакты</div>'
+              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Имя'
+              + '<input name="name" required autocomplete="name" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
+              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Почта'
+              + '<input name="email" type="email" required autocomplete="email" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
+              + '<label style="display:block;margin:0 0 18px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Телефон'
+              + '<input name="phone" type="tel" required autocomplete="tel" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
+              + '<label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 22px;font-size:11px;line-height:1.45;letter-spacing:0.02em;text-transform:none;color:rgba(255,255,255,0.7);">'
+              + '<input name="consent" type="checkbox" required style="margin-top:3px;flex:0 0 auto;accent-color:#1B45FF;">'
+              + '<span>Даю согласие на обработку моих персональных данных</span></label>'
+              + '<button type="submit" data-form-submit="1" style="display:block;width:100%;margin:0 0 12px;padding:14px 16px;background:#fff;border:1px solid #fff;color:#000;font:inherit;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Отправить</button>'
+              + '</form>'
+              + '<button type="button" data-form-close="1" style="display:block;width:100%;background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Закрыть</button>'
+              + '<div data-form-status="1" style="margin-top:12px;font-size:11px;line-height:1.5;color:rgba(255,255,255,0.6);"></div>'
+              + '</div>';
+            function closeForm(ev) {
+              if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+              overlay.remove();
+            }
+            overlay.addEventListener('click', function (ev) {
+              if (ev.target === overlay) closeForm(ev);
+            });
+            overlay.querySelector('[data-form-close]').addEventListener('click', closeForm);
+            overlay.querySelector('form').addEventListener('submit', function (ev) {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const form = ev.currentTarget;
+              const data = new FormData(form);
+              const name = String(data.get('name') || '').trim();
+              const email = String(data.get('email') || '').trim();
+              const phone = String(data.get('phone') || '').trim();
+              const status = overlay.querySelector('[data-form-status]');
+              const submitBtn = overlay.querySelector('[data-form-submit]');
+              if (!name || !email || !phone) {
+                status.textContent = 'Заполните имя, почту и телефон.';
+                return;
+              }
+              if (!data.get('consent')) {
+                status.textContent = 'Отметьте согласие на обработку персональных данных.';
+                return;
+              }
+              function addHidden(field, value) {
+                let input = form.querySelector('input[name="' + field + '"]');
+                if (!input) {
+                  input = document.createElement('input');
+                  input.type = 'hidden';
+                  input.name = field;
+                  form.appendChild(input);
+                }
+                input.value = value;
+              }
+              addHidden('_subject', 'Начать проект с сайта');
+              addHidden('_captcha', 'false');
+              addHidden('_template', 'table');
+              addHidden('_replyto', email);
+              addHidden('_next', window.location.href.split('#')[0]);
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'Отправка...';
+              status.textContent = 'Отправляем заявку на sofyat@yandex.ru...';
+              form.setAttribute('action', 'https://formsubmit.co/' + EMAIL);
+              form.setAttribute('method', 'POST');
+              form.setAttribute('accept-charset', 'UTF-8');
+              form.submit();
+            });
+            document.body.appendChild(overlay);
+            const first = overlay.querySelector('input[name="name"]');
+            if (first) first.focus();
+          }
           function launchMail() {
             showChooser();
           }
           window.__openMailChooser = showChooser;
+          window.__openProjectForm = showProjectForm;
           const TELEGRAM_APP = 'tg://resolve?domain=sofyat_makeup';
           const TELEGRAM_WEB = 'https://t.me/sofyat_makeup';
           function openTelegramChat() {
@@ -750,19 +828,32 @@ document.addEventListener('DOMContentLoaded', async function() {
             const label = (el.textContent || '').replace(/\\s+/g, ' ').trim();
             return /t\\.me\\//i.test(href) || /^tg:/i.test(href) || /^telegram\\b/i.test(label);
           }
-          function isMailTrigger(el) {
+          function isProjectTrigger(el) {
             if (!el || !el.tagName) return false;
-            if (el.tagName === 'A' && isMailLink(el)) return true;
             const label = (el.textContent || '').replace(/\\s+/g, ' ').trim();
             return /^начать\\s*проект$/i.test(label);
           }
+          function isMailTrigger(el) {
+            if (!el || !el.tagName) return false;
+            if (el.tagName === 'A' && isMailLink(el)) return true;
+            return false;
+          }
           document.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && (e.target.closest('#project-form') || e.target.closest('#mail-chooser'))) return;
             const path = e.composedPath ? e.composedPath() : [];
             for (let i = 0; i < path.length; i++) {
               if (isTelegramTrigger(path[i])) {
                 e.preventDefault();
                 e.stopPropagation();
                 openTelegramChat();
+                return;
+              }
+            }
+            for (let i = 0; i < path.length; i++) {
+              if (isProjectTrigger(path[i])) {
+                e.preventDefault();
+                e.stopPropagation();
+                showProjectForm();
                 return;
               }
             }
@@ -780,7 +871,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       <\/script>`;
       template = template.replace(
         'ctaBtnRef = (el) => { this._btnFill(el); };',
-        'ctaBtnRef = (el) => { this._btnFill(el); if (!el || el._mailWired) return; el._mailWired = true; el.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); if (window.__openMailChooser) window.__openMailChooser(); }, true); };'
+        'ctaBtnRef = (el) => { this._btnFill(el); if (!el || el._mailWired) return; el._mailWired = true; el.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); if (window.__openProjectForm) window.__openProjectForm(); }, true); };'
       );
       template = template.replace(
         'data-cursor="link" ref="{{ ctaBtnRef }}"',
@@ -788,7 +879,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       );
       template = template.replace(
         'closeLightbox = (e) => { if (e) { e.stopPropagation(); } this.setState({ lightbox: null }); };',
-        'closeLightbox = (e) => { if (e) { e.stopPropagation(); } this.setState({ lightbox: null }); };\n  openMail = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (window.__openMailChooser) window.__openMailChooser(); };'
+        'closeLightbox = (e) => { if (e) { e.stopPropagation(); } this.setState({ lightbox: null }); };\n  openMail = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (window.__openProjectForm) window.__openProjectForm(); };'
       );
       template = template.replace(
         'closeLightbox: this.closeLightbox,',
