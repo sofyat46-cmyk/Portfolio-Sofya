@@ -628,28 +628,20 @@ document.addEventListener('DOMContentLoaded', async function() {
       );
       const contactSafetyFix = `<script>
         (function () {
-          const YANDEX_ASSETS = 'https://disk.yandex.ru/d/hm1Dz7Dkibot3Q';
+          const CLOUDINARY = 'https://res.cloudinary.com/feda8ztg';
           const mediaCache = {};
           function isLocalMedia(value) {
             return typeof value === 'string' && value.indexOf('assets/video/') === 0;
           }
-          function isRealMediaResponse(r) {
-            if (!r || !r.ok) return false;
-            const type = String(r.headers.get('content-type') || '').toLowerCase();
-            if (type.indexOf('text/html') !== -1) return false;
-            return true;
-          }
-          function remoteMediaUrl(local) {
-            return 'https://getfile.dokpub.com/yandex/get/' + YANDEX_ASSETS + local.replace(/^assets/, '');
+          function cloudinaryUrl(local) {
+            const name = String(local).split('/').pop();
+            if (/\\.(jpg|jpeg|png|webp)$/i.test(name)) return CLOUDINARY + '/image/upload/' + name;
+            return CLOUDINARY + '/video/upload/' + name;
           }
           function resolveMedia(local) {
             if (!isLocalMedia(local)) return Promise.resolve(local);
             if (mediaCache[local]) return mediaCache[local];
-            const remote = remoteMediaUrl(local);
-            mediaCache[local] = fetch(local, { method: 'HEAD' }).then(function (r) {
-              if (isRealMediaResponse(r)) return local;
-              throw new Error('missing');
-            }).catch(function () { return remote; });
+            mediaCache[local] = Promise.resolve(cloudinaryUrl(local));
             return mediaCache[local];
           }
           function applyMedia(el) {
@@ -1009,6 +1001,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         'closeLightbox: this.closeLightbox,',
         'closeLightbox: this.closeLightbox,\n      openMail: this.openMail,'
       );
+      template = template.replace(/assets\/video\/([^"' ]+)\.mp4/g, 'https://res.cloudinary.com/feda8ztg/video/upload/$1.mp4');
+      template = template.replace(/assets\/video\/([^"' ]+)\.jpg/g, 'https://res.cloudinary.com/feda8ztg/image/upload/$1.jpg');
       template = template.replace('</body></html>', contactSafetyFix + '</body></html>');
       templateElement.textContent = JSON.stringify(template);
     }
