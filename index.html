@@ -981,6 +981,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         '<div style="color:rgba(255,255,255,0.3);">Избранное — 06</div>',
         '<a href="https://disk.yandex.ru/d/IJV6PDzQ_mXjmQ" target="_blank" rel="noopener" data-cursor="link" style="color:rgba(255,255,255,0.3);cursor:none;text-decoration:none;">Портфолио</a>'
       );
+      if (template.indexOf('id="boot-hide"') === -1) {
+        template = template.replace(
+          '</head>',
+          '<style id="boot-hide">sc-if:not(:defined){display:none!important;}x-dc:not(:defined),helmet:not(:defined){display:contents!important;}</style></head>'
+        );
+      }
       templateElement.textContent = JSON.stringify(template);
     }
   </script>
