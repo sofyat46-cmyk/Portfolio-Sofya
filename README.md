@@ -16,9 +16,7 @@ npx --yes serve .
 
 ## Видео
 
-Ролики и постеры лежат на Яндекс Диске: https://disk.yandex.ru/d/hm1Dz7Dkibot3Q
-
-Сайт сам подставляет эти файлы. Папка `assets/` в git не входит, чтобы GitHub принял репозиторий. Для работы без интернета скачайте архив с Диска и положите рядом с `index.html` как `assets/video/`.
+Ролики и постеры лежат в `assets/video/` и отдаются вместе с сайтом.
 
 Полный архив работ: https://disk.yandex.ru/d/IJV6PDzQ_mXjmQ
 
@@ -27,6 +25,7 @@ npx --yes serve .
 ```
 .
 ├── index.html
+├── assets/video/
 ├── README.md
 ├── LICENSE
 ├── .gitignore

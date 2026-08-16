@@ -633,10 +633,6 @@ document.addEventListener('DOMContentLoaded', async function() {
           function isLocalMedia(value) {
             return typeof value === 'string' && value.indexOf('assets/video/') === 0;
           }
-          function isLocalDevHost() {
-            const host = location.hostname;
-            return location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
-          }
           function isRealMediaResponse(r) {
             if (!r || !r.ok) return false;
             const type = String(r.headers.get('content-type') || '').toLowerCase();
@@ -650,12 +646,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!isLocalMedia(local)) return Promise.resolve(local);
             if (mediaCache[local]) return mediaCache[local];
             const remote = remoteMediaUrl(local);
-            mediaCache[local] = isLocalDevHost()
-              ? fetch(local, { method: 'HEAD' }).then(function (r) {
-                  if (isRealMediaResponse(r)) return local;
-                  throw new Error('missing');
-                }).catch(function () { return remote; })
-              : Promise.resolve(remote);
+            mediaCache[local] = fetch(local, { method: 'HEAD' }).then(function (r) {
+              if (isRealMediaResponse(r)) return local;
+              throw new Error('missing');
+            }).catch(function () { return remote; });
             return mediaCache[local];
           }
           function applyMedia(el) {
@@ -936,9 +930,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         'closeLightbox: this.closeLightbox,',
         'closeLightbox: this.closeLightbox,\n      openMail: this.openMail,'
       );
-      if (location.protocol !== 'file:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-        template = template.replace(/assets\/video\//g, 'https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/hm1Dz7Dkibot3Q/video/');
-      }
       template = template.replace('</body></html>', contactSafetyFix + '</body></html>');
       templateElement.textContent = JSON.stringify(template);
     }

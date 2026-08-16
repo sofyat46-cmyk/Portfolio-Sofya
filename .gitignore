@@ -20,6 +20,3 @@ ehthumbs.db
 # Local env
 .env
 .env.*
-
-# Large media — hosted on Yandex Disk
-assets/
