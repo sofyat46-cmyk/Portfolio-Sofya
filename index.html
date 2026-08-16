@@ -674,11 +674,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!root.querySelectorAll) return;
             root.querySelectorAll('video, source, img, [src], [data-src], [data-poster], [poster]').forEach(applyMedia);
           }
+          function neutralizeBrokenVideoSrc(root) {
+            if (!root || !root.querySelectorAll) return;
+            root.querySelectorAll('video').forEach(function (v) {
+              const s = v.getAttribute('src') || '';
+              if (s.indexOf('{{') !== -1 || s.indexOf('lightbox.src') !== -1) {
+                v.removeAttribute('src');
+                v.removeAttribute('autoplay');
+                try { v.load(); } catch (err) {}
+              }
+            });
+          }
+          neutralizeBrokenVideoSrc(document);
           scanMedia(document);
           new MutationObserver(function (records) {
             records.forEach(function (rec) {
               rec.addedNodes.forEach(function (node) {
-                if (node.nodeType === 1) scanMedia(node);
+                if (node.nodeType === 1) {
+                  neutralizeBrokenVideoSrc(node);
+                  scanMedia(node);
+                }
               });
               if (rec.type === 'attributes' && rec.target) applyMedia(rec.target);
             });
@@ -948,7 +963,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       );
       template = template.replace(
         '<video controls="" autoplay="" loop="" playsinline="" src="{{ lightbox.src }}" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;">',
-        '<video controls="" autoplay="" loop="" playsinline="" src="{{ lightbox.src }}" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;cursor:auto;">'
+        '<video controls="" loop="" playsinline="" src="" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;cursor:auto;">'
       );
       template = template.replace(
         'В ПРОДАКШЕНЕ FILMWAY AI.',
