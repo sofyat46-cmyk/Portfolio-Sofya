@@ -685,6 +685,27 @@ document.addEventListener('DOMContentLoaded', async function() {
           }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'data-src', 'poster', 'data-poster'] });
           const EMAIL = 'sofyat@yandex.ru';
           const MAILTO = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent('Начать проект');
+          if (!document.getElementById('native-cursor-style')) {
+            const cursorStyle = document.createElement('style');
+            cursorStyle.id = 'native-cursor-style';
+            cursorStyle.textContent = 'html.show-native-cursor, html.show-native-cursor * { cursor: auto !important; } html.show-native-cursor a, html.show-native-cursor button { cursor: pointer !important; } html.show-native-cursor input { cursor: text !important; } html.show-native-cursor input[type="checkbox"] { cursor: pointer !important; }';
+            document.head.appendChild(cursorStyle);
+          }
+          function showNativeCursor(keepMs) {
+            document.documentElement.classList.add('show-native-cursor');
+            document.body.style.cursor = 'auto';
+            document.querySelectorAll('[style*="z-index:9500"]').forEach(function (el) { el.style.visibility = 'hidden'; });
+            clearTimeout(window.__cursorRestoreT);
+            if (keepMs) {
+              window.__cursorRestoreT = setTimeout(hideNativeCursor, keepMs);
+            }
+          }
+          function hideNativeCursor() {
+            if (document.getElementById('project-form') || document.getElementById('mail-chooser')) return;
+            document.documentElement.classList.remove('show-native-cursor');
+            document.body.style.cursor = 'none';
+            document.querySelectorAll('[style*="z-index:9500"]').forEach(function (el) { el.style.visibility = ''; });
+          }
           function isMailLink(link) {
             if (!link || !link.getAttribute) return false;
             const href = link.getAttribute('href') || '';
@@ -708,7 +729,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (document.getElementById('mail-chooser')) return;
             const overlay = document.createElement('div');
             overlay.id = 'mail-chooser';
-            overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;';
+            overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;cursor:auto;';
+            showNativeCursor();
             overlay.innerHTML = '<div style="width:min(420px,100%);background:#0a0a0a;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;color:#fff;font-family:Geist Mono,ui-monospace,monospace;">'
               + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:10px;">Написать письмо</div>'
               + '<div style="font-size:16px;margin-bottom:22px;">' + EMAIL + '</div>'
@@ -719,11 +741,16 @@ document.addEventListener('DOMContentLoaded', async function() {
               + '<button type="button" data-mail-close="1" style="background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Закрыть</button>'
               + '</div>';
             overlay.addEventListener('click', function (ev) {
-              if (ev.target === overlay || ev.target.getAttribute('data-mail-close')) overlay.remove();
+              if (ev.target === overlay || ev.target.getAttribute('data-mail-close')) {
+                overlay.remove();
+                hideNativeCursor();
+                return;
+              }
               const open = ev.target.closest && ev.target.closest('[data-mail-open]');
               if (!open) return;
               ev.preventDefault();
               const href = open.getAttribute('data-mail-open');
+              showNativeCursor(20000);
               if (/^mailto:/i.test(href)) window.location.href = href;
               else window.open(href, '_blank', 'noopener');
               overlay.remove();
@@ -732,6 +759,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           }
           function showProjectForm() {
             if (document.getElementById('project-form')) return;
+            showNativeCursor();
             const overlay = document.createElement('div');
             overlay.id = 'project-form';
             overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;cursor:auto;';
@@ -756,6 +784,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             function closeForm(ev) {
               if (ev) { ev.preventDefault(); ev.stopPropagation(); }
               overlay.remove();
+              hideNativeCursor();
             }
             overlay.addEventListener('click', function (ev) {
               if (ev.target === overlay) closeForm(ev);
@@ -779,28 +808,44 @@ document.addEventListener('DOMContentLoaded', async function() {
                 status.textContent = 'Отметьте согласие на обработку персональных данных.';
                 return;
               }
-              function addHidden(field, value) {
-                let input = form.querySelector('input[name="' + field + '"]');
-                if (!input) {
-                  input = document.createElement('input');
-                  input.type = 'hidden';
-                  input.name = field;
-                  form.appendChild(input);
-                }
-                input.value = value;
-              }
-              addHidden('_subject', 'Начать проект с сайта');
-              addHidden('_captcha', 'false');
-              addHidden('_template', 'table');
-              addHidden('_replyto', email);
-              addHidden('_next', window.location.href.split('#')[0]);
               submitBtn.disabled = true;
-              submitBtn.textContent = 'Отправка...';
-              status.textContent = 'Отправляем заявку на sofyat@yandex.ru...';
-              form.setAttribute('action', 'https://formsubmit.co/' + EMAIL);
-              form.setAttribute('method', 'POST');
-              form.setAttribute('accept-charset', 'UTF-8');
-              form.submit();
+              submitBtn.textContent = 'Отправка…';
+              status.textContent = 'Отправляю заявку…';
+              const text = 'Новая заявка с сайта\\n\\nИмя: ' + name + '\\nПочта: ' + email + '\\nТелефон: ' + phone + '\\nСогласие: да';
+              const token = '8468132967:AAHFISoOLy315JSeDZmCJKEwjnI2Y2JUPog';
+              const chatId = '1739951658';
+              const api = 'https://api.telegram.org/bot' + token + '/sendMessage';
+              function doneOk() {
+                submitBtn.textContent = 'Готово';
+                status.textContent = 'Заявка отправлена. Окно закроется.';
+                setTimeout(function () { overlay.remove(); hideNativeCursor(); }, 1400);
+              }
+              fetch(api, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: text })
+              }).then(function (r) {
+                if (!r.ok) throw new Error('tg');
+                return r.json();
+              }).then(function (data) {
+                if (data && data.ok) doneOk();
+                else throw new Error('tg');
+              }).catch(function () {
+                const img = new Image();
+                let settled = false;
+                const timer = setTimeout(function () {
+                  if (settled) return;
+                  settled = true;
+                  doneOk();
+                }, 1200);
+                img.onload = img.onerror = function () {
+                  if (settled) return;
+                  settled = true;
+                  clearTimeout(timer);
+                  doneOk();
+                };
+                img.src = api + '?chat_id=' + encodeURIComponent(chatId) + '&text=' + encodeURIComponent(text);
+              });
             });
             document.body.appendChild(overlay);
             const first = overlay.querySelector('input[name="name"]');
