@@ -633,14 +633,27 @@ document.addEventListener('DOMContentLoaded', async function() {
           function isLocalMedia(value) {
             return typeof value === 'string' && value.indexOf('assets/video/') === 0;
           }
+          function isLocalDevHost() {
+            const host = location.hostname;
+            return location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
+          }
+          function isRealMediaResponse(r) {
+            if (!r || !r.ok) return false;
+            const type = String(r.headers.get('content-type') || '').toLowerCase();
+            if (type.indexOf('text/html') !== -1) return false;
+            return true;
+          }
           function resolveMedia(local) {
             if (!isLocalMedia(local)) return Promise.resolve(local);
             if (mediaCache[local]) return mediaCache[local];
             const path = local.replace(/^assets/, '');
-            mediaCache[local] = fetch(local, { method: 'HEAD' }).then(function (r) {
-              if (r.ok) return local;
-              throw new Error('missing');
-            }).catch(function () {
+            mediaCache[local] = (isLocalDevHost()
+              ? fetch(local, { method: 'HEAD' }).then(function (r) {
+                  if (isRealMediaResponse(r)) return local;
+                  throw new Error('missing');
+                })
+              : Promise.reject(new Error('remote'))
+            ).catch(function () {
               return fetch('https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=' + encodeURIComponent(YANDEX_ASSETS) + '&path=' + encodeURIComponent(path))
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
