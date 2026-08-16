@@ -643,26 +643,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (type.indexOf('text/html') !== -1) return false;
             return true;
           }
+          function remoteMediaUrl(local) {
+            return 'https://getfile.dokpub.com/yandex/get/' + YANDEX_ASSETS + local.replace(/^assets/, '');
+          }
           function resolveMedia(local) {
             if (!isLocalMedia(local)) return Promise.resolve(local);
             if (mediaCache[local]) return mediaCache[local];
-            const path = local.replace(/^assets/, '');
-            mediaCache[local] = (isLocalDevHost()
+            const remote = remoteMediaUrl(local);
+            mediaCache[local] = isLocalDevHost()
               ? fetch(local, { method: 'HEAD' }).then(function (r) {
                   if (isRealMediaResponse(r)) return local;
                   throw new Error('missing');
-                })
-              : Promise.reject(new Error('remote'))
-            ).catch(function () {
-              return fetch('https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=' + encodeURIComponent(YANDEX_ASSETS) + '&path=' + encodeURIComponent(path))
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                  if (data && data.href) return data.href;
-                  return 'https://getfile.dokpub.com/yandex/get/' + YANDEX_ASSETS + path;
-                });
-            }).catch(function () {
-              return 'https://getfile.dokpub.com/yandex/get/' + YANDEX_ASSETS + path;
-            });
+                }).catch(function () { return remote; })
+              : Promise.resolve(remote);
             return mediaCache[local];
           }
           function applyMedia(el) {
@@ -943,6 +936,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         'closeLightbox: this.closeLightbox,',
         'closeLightbox: this.closeLightbox,\n      openMail: this.openMail,'
       );
+      if (location.protocol !== 'file:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        template = template.replace(/assets\/video\//g, 'https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/hm1Dz7Dkibot3Q/video/');
+      }
       template = template.replace('</body></html>', contactSafetyFix + '</body></html>');
       templateElement.textContent = JSON.stringify(template);
     }
