@@ -2,11 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Bundled Page</title>
+  <title>Софья Толстых</title>
+  <link rel="preconnect" href="https://res.cloudinary.com">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000000; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    #__bundler_loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 10000; font: 500 clamp(56px,10vw,140px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #fff; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
     #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000000; z-index: 9999; }
     #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
     #__bundler_placeholder { color: #999; font-size: 14px; }
@@ -22,18 +23,20 @@
   <div id="__bundler_thumbnail">
   <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
     <rect width="1200" height="800" fill="#000000"></rect>
-    <rect x="360" y="240" width="480" height="300" fill="#0a0a0a" stroke="#1B45FF" stroke-width="6"></rect>
-    <circle cx="600" cy="390" r="46" fill="#1B45FF"></circle>
-    <text x="600" y="640" font-family="monospace" font-size="86" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="12">ЮК</text>
   </svg>
 </div>
-  <div id="__bundler_loading">Unpacking...</div>
+  <div id="__bundler_loading">0%</div>
 
   <script>
     
 document.addEventListener('DOMContentLoaded', async function() {
   const loading = document.getElementById('__bundler_loading');
-  function setStatus(msg) { if (loading) loading.textContent = msg; }
+  let bootPct = 2;
+  function setStatus(msg) {
+    if (typeof msg === 'number') bootPct = Math.max(bootPct, msg);
+    if (loading) loading.textContent = Math.round(Math.min(99, bootPct)) + '%';
+  }
+  setStatus(4);
 
   const FONT_MIME = /^(font[/]|application[/](x-)?font-|application[/]vnd\.ms-fontobject)/i;
   const MIME_TOKEN = /^[\w.+-]+[/][\w.+-]+$/;
@@ -218,7 +221,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 
     const uuids = Object.keys(manifest);
-    setStatus('Unpacking ' + uuids.length + ' assets...');
+    setStatus(8);
+    let unpacked = 0;
 
     await Promise.all(uuids.map(async (uuid) => {
       const entry = manifest[uuid];
@@ -270,6 +274,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         blobUrls[uuid] = URL.createObjectURL(blob);
         resourceBlobs[blobUrls[uuid]] = blob;
       }
+      unpacked += 1;
+      setStatus(8 + Math.round((unpacked / Math.max(uuids.length, 1)) * 36));
     }));
 
     const extResEl = document.querySelector('script[type="__bundler/ext_resources"]');
@@ -283,7 +289,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // consumers read these Blobs directly. Survives the swap like the error sink.
     window.__resourceBlobs = resourceBlobs;
 
-    setStatus('Rendering...');
+    setStatus(48);
     // Page uuids have no blob here — they ride inside about:blank#<uuid>
     // frame markers the pass below resolves after the swap.
     for (const uuid of uuids) {
@@ -314,6 +320,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     // DOMParser/replaceWith are inert per spec — re-create each with
     // createElement so they execute, awaiting onload for src scripts to
     // preserve ordering (React before ReactDOM before Babel before text/babel).
+    template = template.replace(/<body[^>]*>/i, function (m) {
+      return m + '<div id="site-boot-loader" style="position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;align-items:center;justify-content:center;"><div id="site-boot-pct" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(56px,10vw,140px);font-weight:500;letter-spacing:-0.05em;color:#fff;font-variant-numeric:tabular-nums;">52%</div></div>';
+    });
     const doc = new DOMParser().parseFromString(template, 'text/html');
     document.documentElement.replaceWith(doc.documentElement);
 
@@ -416,15 +425,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       template = template.replace(
         "{ n: '04', cat: 'Fashion', title: 'New York City Collapse', sub: 'коллаборация с Yana Bononi · Y2B Agency, Нью-Йорк', desc: 'Творческая коллаборация с нью-йоркским fashion-режиссёром Yana Bononi.', meta: '+20% конверсии против стандартных брендовых роликов · 2025', v: 'v1783528657/05_NYC_FASHION_COLAB_nwykqg' }",
-        "{ n: '04', cat: 'Рекламный ролик', title: 'Рекламный ролик', sub: '', desc: '" + advertisingDescription + "', meta: 'AI-реклама · Концепция и режиссура', src: 'assets/video/advertising-video.mp4', posterSrc: 'assets/video/advertising-video-poster.jpg' }"
+        "{ n: '04', cat: 'Рекламный ролик', title: 'Рекламный ролик', sub: '', desc: '" + advertisingDescription + "', meta: 'AI-реклама · Концепция и режиссура', src: 'https://res.cloudinary.com/feda8ztg/video/upload/advertising-video.mp4', posterSrc: 'https://res.cloudinary.com/feda8ztg/image/upload/advertising-video-poster.jpg' }"
       );
 
       const fourthCardStart = template.indexOf('<!-- 04 v -->');
       const fourthCardEnd = template.indexOf('<!-- 05', fourthCardStart);
       if (fourthCardStart !== -1 && fourthCardEnd !== -1) {
         const fourthCard = `<!-- 04 v -->
-      <div class="portfolio-card--quaternary" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Рекламный ролик" data-meta="AI-реклама · Концепция и режиссура" data-src="assets/video/advertising-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
-        <video muted="" loop="" playsinline="" preload="none" data-poster="assets/video/advertising-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="assets/video/advertising-video.mp4" type="video/mp4"></video>
+      <div class="portfolio-card--quaternary" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Рекламный ролик" data-meta="AI-реклама · Концепция и режиссура" data-src="https://res.cloudinary.com/feda8ztg/video/upload/advertising-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
+        <video muted="" loop="" playsinline="" preload="none" data-poster="https://res.cloudinary.com/feda8ztg/image/upload/advertising-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="https://res.cloudinary.com/feda8ztg/video/upload/advertising-video.mp4" type="video/mp4"></video>
         <div data-ov="" style="position:absolute;inset:0;opacity:0;transition:opacity .4s ease;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.85) 100%);"></div>
         <div style="position:absolute;top:16px;right:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.7);">04</div>
         <div style="position:absolute;bottom:16px;left:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Рекламный ролик</div>
@@ -452,15 +461,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       template = template.replace(
         "{ n: '03', cat: 'Film', title: 'Трейлер полнометражного фильма (NDA)', sub: 'для продакшн-компании', desc: 'Кинематографичный ИИ-трейлер для питча фильма. Питч выстрелил — бюджет утверждён, фильм запущен в производство.', meta: 'В производстве · Съёмки с 2027 · Режиссура через ИИ · 2026', v: 'v1783528662/03_mt_final_low_vm8a55' }",
-        "{ n: '03', cat: 'Музыкальный клип', title: 'Музыкальный клип', sub: '', desc: '" + musicVideoDescription + "', meta: 'AI-клип · Концепция и режиссура', src: 'assets/video/music-video.mp4', posterSrc: 'assets/video/music-video-poster.jpg' }"
+        "{ n: '03', cat: 'Музыкальный клип', title: 'Музыкальный клип', sub: '', desc: '" + musicVideoDescription + "', meta: 'AI-клип · Концепция и режиссура', src: 'https://res.cloudinary.com/feda8ztg/video/upload/music-video.mp4', posterSrc: 'https://res.cloudinary.com/feda8ztg/image/upload/music-video-poster.jpg' }"
       );
 
       const thirdCardStart = template.indexOf('<!-- 03 h offset -->');
       const thirdCardEnd = template.indexOf('<!-- 04 v -->', thirdCardStart);
       if (thirdCardStart !== -1 && thirdCardEnd !== -1) {
         const thirdCard = `<!-- 03 h offset -->
-      <div class="portfolio-card--tertiary" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Музыкальный клип" data-meta="AI-клип · Концепция и режиссура" data-src="assets/video/music-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
-        <video muted="" loop="" playsinline="" preload="none" data-poster="assets/video/music-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="assets/video/music-video.mp4" type="video/mp4"></video>
+      <div class="portfolio-card--tertiary" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Музыкальный клип" data-meta="AI-клип · Концепция и режиссура" data-src="https://res.cloudinary.com/feda8ztg/video/upload/music-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
+        <video muted="" loop="" playsinline="" preload="none" data-poster="https://res.cloudinary.com/feda8ztg/image/upload/music-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="https://res.cloudinary.com/feda8ztg/video/upload/music-video.mp4" type="video/mp4"></video>
         <div data-ov="" style="position:absolute;inset:0;opacity:0;transition:opacity .4s ease;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.85) 100%);"></div>
         <div style="position:absolute;top:16px;right:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.7);">03</div>
         <div style="position:absolute;bottom:16px;left:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Музыкальный клип</div>
@@ -501,15 +510,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       template = template.replace(
         "{ n: '05', cat: 'Art', title: '«Лицо на продажу»', sub: 'личный проект', desc: 'Каждое утро — как витрина: ты распаковываешь себя и выбираешь, что сегодня «на продажу». Арт-высказывание про маски, которые мы носим.', meta: '500К+ просмотров · Концепция и режиссура · 2025', v: 'v1783528651/06_FACE_ON_SALE_j2cfcv' }",
-        "{ n: '05', cat: 'Мультфильм', title: 'Мультфильм', sub: '', desc: '" + cartoonDescription + "', meta: '1,5 млн+ просмотров · AI-анимация', src: 'assets/video/cartoon-video.mp4', posterSrc: 'assets/video/cartoon-video-poster.jpg' }"
+        "{ n: '05', cat: 'Мультфильм', title: 'Мультфильм', sub: '', desc: '" + cartoonDescription + "', meta: '1,5 млн+ просмотров · AI-анимация', src: 'https://res.cloudinary.com/feda8ztg/video/upload/cartoon-video.mp4', posterSrc: 'https://res.cloudinary.com/feda8ztg/image/upload/cartoon-video-poster.jpg' }"
       );
 
       const fifthCardStart = template.indexOf('<!-- 05 v offset -->');
       const fifthCardEnd = template.indexOf('<!-- 06 h -->', fifthCardStart);
       if (fifthCardStart !== -1 && fifthCardEnd !== -1) {
         const fifthCard = `<!-- 05 v offset -->
-      <div class="portfolio-card--fifth" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Мультфильм" data-meta="1,5 млн+ просмотров · AI-анимация" data-src="assets/video/cartoon-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
-        <video muted="" loop="" playsinline="" preload="none" data-poster="assets/video/cartoon-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="assets/video/cartoon-video.mp4" type="video/mp4"></video>
+      <div class="portfolio-card--fifth" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Мультфильм" data-meta="1,5 млн+ просмотров · AI-анимация" data-src="https://res.cloudinary.com/feda8ztg/video/upload/cartoon-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
+        <video muted="" loop="" playsinline="" preload="none" data-poster="https://res.cloudinary.com/feda8ztg/image/upload/cartoon-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="https://res.cloudinary.com/feda8ztg/video/upload/cartoon-video.mp4" type="video/mp4"></video>
         <div data-ov="" style="position:absolute;inset:0;opacity:0;transition:opacity .4s ease;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.85) 100%);"></div>
         <div style="position:absolute;top:16px;right:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.7);">05</div>
         <div style="position:absolute;bottom:16px;left:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Мультфильм</div>
@@ -537,15 +546,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       template = template.replace(
         "{ n: '06', cat: 'Film', title: '«Пора просыпаться»', sub: 'AI Film Festival от Runway — участник', desc: 'Короткий фильм на стыке живой съёмки и ИИ.', meta: 'Live action × ИИ · 2023', v: 'v1783528664/07_TIME_TO_WAKE_UP_low_ibq6jk' }",
-        "{ n: '06', cat: 'Кинематографичные кадры', title: 'Кинематографичные кадры', sub: '', desc: '" + cinematicDescription + "', meta: 'AI-cinema · Концепция и режиссура', src: 'assets/video/cinematic-video.mp4', posterSrc: 'assets/video/cinematic-video-poster.jpg' }"
+        "{ n: '06', cat: 'Кинематографичные кадры', title: 'Кинематографичные кадры', sub: '', desc: '" + cinematicDescription + "', meta: 'AI-cinema · Концепция и режиссура', src: 'https://res.cloudinary.com/feda8ztg/video/upload/cinematic-video.mp4', posterSrc: 'https://res.cloudinary.com/feda8ztg/image/upload/cinematic-video-poster.jpg' }"
       );
 
       const sixthCardStart = template.indexOf('<!-- 06 h -->');
       const sixthCardEnd = template.indexOf('\n    </div>\n\n    <div style="text-align:center', sixthCardStart);
       if (sixthCardStart !== -1 && sixthCardEnd !== -1) {
         const sixthCard = `<!-- 06 h -->
-      <div class="portfolio-card--sixth" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Кинематографичные кадры" data-meta="AI-cinema · Концепция и режиссура" data-src="assets/video/cinematic-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
-        <video muted="" loop="" playsinline="" preload="none" data-poster="assets/video/cinematic-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="assets/video/cinematic-video.mp4" type="video/mp4"></video>
+      <div class="portfolio-card--sixth" data-play="" sc-camel-on-mouse-enter="{{ cardEnter }}" sc-camel-on-mouse-leave="{{ cardLeave }}" sc-camel-on-click="{{ openLightbox }}" data-title="Кинематографичные кадры" data-meta="AI-cinema · Концепция и режиссура" data-src="https://res.cloudinary.com/feda8ztg/video/upload/cinematic-video.mp4" style="position:relative;flex:1 1 min(100%,620px);aspect-ratio:16/9;overflow:hidden;border:1px solid var(--line);cursor:none;background:#111;">
+        <video muted="" loop="" playsinline="" preload="none" data-poster="https://res.cloudinary.com/feda8ztg/image/upload/cinematic-video-poster.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"><source data-src="https://res.cloudinary.com/feda8ztg/video/upload/cinematic-video.mp4" type="video/mp4"></video>
         <div data-ov="" style="position:absolute;inset:0;opacity:0;transition:opacity .4s ease;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.85) 100%);"></div>
         <div style="position:absolute;top:16px;right:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.1em;color:rgba(255,255,255,0.7);">06</div>
         <div style="position:absolute;bottom:16px;left:18px;z-index:3;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.6);">Кинематографичные кадры</div>
@@ -574,9 +583,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       const statsContentEnd = template.indexOf(statsContentEndMarker, statsContentStart);
       if (statsSectionStart !== -1 && statsContentStart !== -1 && statsContentEnd !== -1) {
         const centeredMessage = `<div style="position:relative;z-index:2;min-height:clamp(520px,72vh,760px);max-width:1600px;margin:0 auto;padding:clamp(64px,8vw,128px) clamp(24px,4vw,64px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(46px,6vw,82px);text-align:center;box-sizing:border-box;">
-    <div data-reveal="" style="width:100%;display:flex;align-items:center;justify-content:center;">
-      <div style="max-width:1280px;margin:0 auto;font-weight:400;letter-spacing:-0.035em;line-height:1.08;font-size:clamp(38px,6.2vw,104px);color:rgba(255,255,255,0.95);">За 3–5 дней вы получаете:</div>
-    </div>
+    <div data-reveal="" data-stats-heading="" style="width:100%;max-width:1280px;margin:0 auto;font-weight:400;letter-spacing:-0.035em;line-height:1.08;font-size:clamp(38px,6.2vw,104px);color:rgba(255,255,255,0.95);text-align:center;">За 3–5 дней вы получаете:</div>
     <div style="width:100%;display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;gap:clamp(16px,2vw,30px);">
       <div data-reveal="" style="flex:1 1 220px;display:flex;align-items:center;justify-content:center;min-height:82px;padding:18px 16px;border-top:1px solid rgba(255,255,255,0.24);font-family:'Geist Mono',monospace;font-size:clamp(11px,1vw,14px);line-height:1.45;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.72);">Исследование конкурентов</div>
       <div data-reveal="" style="flex:1 1 220px;display:flex;align-items:center;justify-content:center;min-height:82px;padding:18px 16px;border-top:1px solid rgba(255,255,255,0.24);font-family:'Geist Mono',monospace;font-size:clamp(11px,1vw,14px);line-height:1.45;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.72);">5–10 концепций и сценарий</div>
@@ -602,7 +609,7 @@ document.addEventListener('DOMContentLoaded', async function() {
       template = template.replace('( 04 ) Контакты', '( 03 ) Контакты');
       template = template.replace(
         'https://res.cloudinary.com/vqm92xp5/video/upload/v1783582817/bg_stats_water_mxeniu.mp4',
-        'assets/video/bride-3.mp4'
+        'https://res.cloudinary.com/feda8ztg/video/upload/bride-3.mp4'
       );
       templateElement.textContent = JSON.stringify(template);
     }
@@ -629,137 +636,615 @@ document.addEventListener('DOMContentLoaded', async function() {
       const contactSafetyFix = `<script>
         (function () {
           const CLOUDINARY = 'https://res.cloudinary.com/feda8ztg';
-          const mediaCache = {};
           function isLocalMedia(value) {
-            return typeof value === 'string' && value.indexOf('assets/video/') === 0;
+            return typeof value === 'string' && (value.indexOf('assets/video/') === 0 || value.indexOf('/assets/video/') !== -1);
           }
           function cloudinaryUrl(local) {
-            const name = String(local).split('/').pop();
+            const name = String(local).split('/').pop().split('?')[0];
             if (/\\.(jpg|jpeg|png|webp)$/i.test(name)) return CLOUDINARY + '/image/upload/' + name;
             return CLOUDINARY + '/video/upload/' + name;
           }
-          function resolveMedia(local) {
-            if (!isLocalMedia(local)) return Promise.resolve(local);
-            if (mediaCache[local]) return mediaCache[local];
-            mediaCache[local] = Promise.resolve(cloudinaryUrl(local));
-            return mediaCache[local];
+          const FILE = location.protocol === 'file:';
+          const LOCAL_MEDIA = /^(bride-3|showreel|music-video|cartoon-video|cinematic-video|advertising-video|fashion-style|realistic-video)(-poster)?\\.(mp4|jpg|jpeg|png|webp)$/i;
+          function fileName(value) {
+            return String(value || '').split('/').pop().split('?')[0];
           }
-          function applyMedia(el) {
+          function optimizeUrl(raw) {
+            const name = fileName(raw);
+            if (!name) return raw;
+            if (FILE && LOCAL_MEDIA.test(name)) return 'assets/video/' + name;
+            const isImg = /\\.(jpg|jpeg|png|webp)$/i.test(name);
+            const src = String(raw);
+            if (src.indexOf('res.cloudinary.com/feda8ztg') !== -1) {
+              if (isImg) {
+                if (src.indexOf('/image/upload/q_auto') !== -1) return src;
+                return src.replace('/image/upload/', '/image/upload/q_auto,f_auto,c_limit,w_1400/');
+              }
+              if (src.indexOf('/video/upload/q_auto') !== -1) return src;
+              return src.replace('/video/upload/', '/video/upload/q_auto,c_limit,w_1600/');
+            }
+            if (isLocalMedia(src) || LOCAL_MEDIA.test(name)) {
+              if (isImg) return CLOUDINARY + '/image/upload/q_auto,f_auto,c_limit,w_1400/' + name;
+              return CLOUDINARY + '/video/upload/q_auto,c_limit,w_1600/' + name;
+            }
+            return src;
+          }
+          function applyMedia(el, forceLoad) {
             if (!el || !el.getAttribute) return;
+            if (el._cldDone && !forceLoad) return;
+            const tag = el.tagName;
+            if (tag !== 'VIDEO' && tag !== 'SOURCE' && tag !== 'IMG') return;
+            const isBg = tag === 'VIDEO' ? el.hasAttribute('data-bg') : !!(el.parentElement && el.parentElement.hasAttribute && el.parentElement.hasAttribute('data-bg'));
+            if (tag === 'VIDEO' && !isBg && !forceLoad) return;
             ['src', 'data-src', 'poster', 'data-poster'].forEach(function (attr) {
               const v = el.getAttribute(attr);
-              if (!isLocalMedia(v)) return;
-              resolveMedia(v).then(function (url) {
-                el.setAttribute(attr, url);
-                if (attr === 'src' && 'src' in el) el.src = url;
-                if (attr === 'poster' && el.tagName === 'VIDEO') el.poster = url;
-                if (attr === 'data-poster' && el.tagName === 'VIDEO' && !el.getAttribute('poster')) el.poster = url;
-                if (el.tagName === 'VIDEO') {
+              if (!v || v.indexOf('{{') !== -1) return;
+              if (!isLocalMedia(v) && v.indexOf('cloudinary.com') === -1) return;
+              const url = optimizeUrl(v);
+              if (attr === 'src' || attr === 'data-src') {
+                if (el.getAttribute('src') !== url) el.setAttribute('src', url);
+              }
+              if ((attr === 'poster' || attr === 'data-poster') && tag === 'VIDEO') {
+                if (el.getAttribute('poster') !== url) el.setAttribute('poster', url);
+              }
+            });
+            if (tag === 'VIDEO') {
+              el.preload = (isBg || forceLoad) ? 'auto' : 'metadata';
+              el.setAttribute('preload', el.preload);
+              const source = el.querySelector('source');
+              const url = (source && (source.getAttribute('src') || source.getAttribute('data-src'))) || el.getAttribute('data-src') || el.getAttribute('src');
+              if (url && url.indexOf('{{') === -1) {
+                const finalUrl = optimizeUrl(url);
+                if (el.getAttribute('src') !== finalUrl) el.setAttribute('src', finalUrl);
+                if (isBg || forceLoad) {
                   try { el.load(); } catch (err) {}
+                  if (isBg) {
+                    el.muted = true;
+                    const p = el.play && el.play();
+                    if (p && p.catch) p.catch(function () {});
+                  }
                 }
-                if (el.tagName === 'SOURCE' && el.parentElement && el.parentElement.tagName === 'VIDEO') {
-                  try { el.parentElement.load(); } catch (err) {}
-                }
+                el._cldDone = true;
+                return;
+              }
+              return;
+            }
+            el._cldDone = true;
+          }
+          let restStarted = false;
+          function loadRest() {
+            if (restStarted) return;
+            restStarted = true;
+            document.querySelectorAll('video, source, img').forEach(function (el) { applyMedia(el, true); });
+          }
+          function scanBg() {
+            document.querySelectorAll('video[data-bg], video[data-bg] source').forEach(function (el) { applyMedia(el, false); });
+          }
+          scanBg();
+          [180, 500].forEach(function (ms) { setTimeout(scanBg, ms); });
+          const firstBg = document.querySelector('video[data-bg]');
+          if (firstBg) {
+            firstBg.addEventListener('canplay', loadRest, { once: true });
+            firstBg.addEventListener('playing', loadRest, { once: true });
+          }
+          setTimeout(loadRest, 1000);
+          [1800, 2800].forEach(function (ms) { setTimeout(function () { loadRest(); formatAboutBreak(); }, ms); });
+          function loopSpiralVideos() {
+            document.querySelectorAll('[data-spiral-node] video').forEach(function (v) {
+              v.loop = true;
+              v.setAttribute('loop', '');
+              if (v._spiralLoopBound) return;
+              v._spiralLoopBound = true;
+              v.addEventListener('ended', function () {
+                try { v.currentTime = 0; } catch (err) {}
+                const p = v.play && v.play();
+                if (p && p.catch) p.catch(function () {});
               });
             });
           }
-          function armVideo(video) {
-            if (!video || video._armed) return;
-            video._armed = true;
-            const parts = [];
-            if (video.getAttribute('data-src')) parts.push(video);
-            video.querySelectorAll('source').forEach(function (s) { parts.push(s); });
-            parts.forEach(function (el) {
-              const v = el.getAttribute('data-src') || el.getAttribute('src');
+          (function watchAgainOverlay() {
+            if (window.__watchAgainBound) return;
+            window.__watchAgainBound = true;
+            if (!document.getElementById('watch-again-style')) {
+              const stl = document.createElement('style');
+              stl.id = 'watch-again-style';
+              stl.textContent = '[data-watch-again]{display:none;align-items:center;justify-content:center;margin:0;padding:16px 28px;border:1px solid #fff;border-radius:100px;background:rgba(0,0,0,0.84);color:#fff;font-family:Geist Mono,ui-monospace,monospace;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap;pointer-events:auto;opacity:1;visibility:visible;}[data-watch-again]:not([hidden]){display:flex !important;}[data-watch-again][hidden]{display:none !important;}';
+              document.head.appendChild(stl);
+            }
+            function label() { return (window.__tr ? window.__tr('Смотреть ещё раз') : 'Смотреть ещё раз'); }
+            function makeFloat() {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.setAttribute('data-watch-again', 'float');
+              btn.setAttribute('hidden', '');
+              btn.textContent = label();
+              btn.style.cssText = 'position:fixed;z-index:2147483646;left:50%;top:50%;transform:translate(-50%,-50%);';
+              try { btn.setAttribute('popover', 'manual'); } catch (err) {}
+              return btn;
+            }
+            let floatBtn = document.querySelector('[data-watch-again="float"]') || makeFloat();
+            function ensureFloat() {
+              const host = document.body || document.documentElement;
+              if (!floatBtn.isConnected && host) host.appendChild(floatBtn);
+            }
+            ensureFloat();
+            function isLightboxVideo(v) {
+              if (!v || v.tagName !== 'VIDEO') return false;
+              if (v.hasAttribute('data-bg') || v.hasAttribute('data-about-showreel')) return false;
+              if (v.closest('[data-spiral-node]')) return false;
+              if (v.hasAttribute('data-lb-player')) return true;
+              if (v.closest('[data-lb-video]')) return true;
+              if (v.closest('[style*="z-index:9700"]')) return true;
+              const open = document.documentElement.classList.contains('lightbox-open') || !!document.querySelector('[style*="z-index:9700"]');
+              if (!open) return false;
+              if (v.controls || v.getAttribute('controls') !== null) return true;
+              return false;
+            }
+            function cardVideo() {
+              const tagged = document.querySelector('[data-lb-player], [data-lb-video] video, [style*="z-index:9700"] video');
+              if (tagged && isLightboxVideo(tagged)) return tagged;
+              const all = document.querySelectorAll('video');
+              for (let i = 0; i < all.length; i++) {
+                if (!isLightboxVideo(all[i])) continue;
+                const r = all[i].getBoundingClientRect();
+                if (r.width > 40 && r.height > 40) return all[i];
+              }
+              return null;
+            }
+            function mediaDuration(v) {
+              const d = v.duration;
+              if (d && isFinite(d) && d > 0.2) return d;
+              try {
+                if (v.seekable && v.seekable.length) {
+                  const e = v.seekable.end(v.seekable.length - 1);
+                  if (e && isFinite(e) && e > 0.2) return e;
+                }
+              } catch (err) {}
+              try {
+                if (v.buffered && v.buffered.length) {
+                  const e = v.buffered.end(v.buffered.length - 1);
+                  if (e && isFinite(e) && e > 0.2) return e;
+                }
+              } catch (err) {}
+              return 0;
+            }
+            function killLoop(v) {
               if (!v) return;
-              resolveMedia(v).then(function (url) {
-                el.setAttribute('src', url);
-                if (el.tagName === 'VIDEO') el.src = url;
-                try { video.load(); } catch (err) {}
+              v.loop = false;
+              v.removeAttribute('loop');
+            }
+            const mem = { v: null, last: 0, max: 0, armed: false, hold: false };
+            function hide() {
+              mem.hold = false;
+              document.querySelectorAll('[data-watch-again]').forEach(function (b) {
+                b.setAttribute('hidden', '');
+                b.style.display = 'none';
+                try { if (b.hidePopover) b.hidePopover(); } catch (err) {}
               });
-            });
-          }
-          function scanMedia(root) {
-            if (!root) return;
-            if (root.nodeType === 1) applyMedia(root);
-            if (!root.querySelectorAll) return;
-            root.querySelectorAll('video, source, img, [src], [data-src], [data-poster], [poster]').forEach(applyMedia);
-          }
-          function armAllVideos(root) {
-            const scope = root && root.querySelectorAll ? root : document;
-            const list = [];
-            if (root && root.tagName === 'VIDEO') list.push(root);
-            if (scope.querySelectorAll) {
-              scope.querySelectorAll('video').forEach(function (v) { list.push(v); });
             }
-            list.forEach(function (v) {
-              v.setAttribute('preload', 'auto');
-              armVideo(v);
-              if (v.hasAttribute('autoplay') || v.hasAttribute('data-bg')) {
-                v.muted = true;
-                const play = function () { v.play && v.play().catch(function () {}); };
-                if (v.readyState >= 2) play();
-                else v.addEventListener('canplay', play, { once: true });
-              }
-            });
-          }
-          function neutralizeBrokenVideoSrc(root) {
-            if (!root || !root.querySelectorAll) return;
-            root.querySelectorAll('video').forEach(function (v) {
-              const s = v.getAttribute('src') || '';
-              if (s.indexOf('{{') !== -1 || s.indexOf('lightbox.src') !== -1) {
-                v.removeAttribute('src');
-                v.removeAttribute('autoplay');
-                try { v.load(); } catch (err) {}
-              }
-            });
-          }
-          neutralizeBrokenVideoSrc(document);
-          scanMedia(document);
-          armAllVideos(document);
-          document.addEventListener('pointerenter', function (e) {
-            const host = e.target && e.target.closest && e.target.closest('video, [data-play]');
-            if (!host) return;
-            armVideo(host.tagName === 'VIDEO' ? host : host.querySelector('video'));
-          }, true);
-          document.addEventListener('click', function (e) {
-            const card = e.target && e.target.closest && e.target.closest('[data-src]');
-            if (card && card.getAttribute('data-src')) {
-              document.documentElement.classList.add('lightbox-open');
-              const src = card.getAttribute('data-src');
-              setTimeout(function () {
-                document.querySelectorAll('[style*="z-index:9700"] video').forEach(function (v) {
-                  resolveMedia(src).then(function (url) {
-                    v.src = url;
-                    v.play && v.play().catch(function () {});
-                  });
-                });
-              }, 40);
-            }
-            if (e.target && e.target.closest && e.target.closest('[style*="z-index:9700"] button, [style*="z-index:9700"]')) {
-              if (e.target.getAttribute && (e.target.getAttribute('data-cursor') === 'link' || /closeLightbox/.test(e.target.getAttribute('sc-camel-on-click') || ''))) {
-                document.documentElement.classList.remove('lightbox-open');
-              }
-            }
-          }, true);
-          new MutationObserver(function (records) {
-            records.forEach(function (rec) {
-              rec.addedNodes.forEach(function (node) {
-                if (node.nodeType === 1) {
-                  neutralizeBrokenVideoSrc(node);
-                  scanMedia(node);
-                  armAllVideos(node);
+            function show(v) {
+              mem.hold = true;
+              ensureFloat();
+              try { v.pause(); } catch (err) {}
+              const r = v.getBoundingClientRect();
+              const x = (r.left + r.width / 2) + 'px';
+              const y = (r.top + r.height / 2) + 'px';
+              const text = label();
+              document.querySelectorAll('[data-watch-again]').forEach(function (b) {
+                b.textContent = text;
+                b.removeAttribute('hidden');
+                b.style.display = 'flex';
+                if (b.getAttribute('data-watch-again') === 'float') {
+                  b.style.position = 'fixed';
+                  b.style.left = x;
+                  b.style.top = y;
+                  b.style.zIndex = '2147483646';
+                  try { if (b.showPopover) b.showPopover(); } catch (err) {}
+                } else {
+                  b.style.left = '50%';
+                  b.style.top = '50%';
                 }
               });
-              if (rec.type === 'attributes' && rec.target) applyMedia(rec.target);
+            }
+            function isEnded(v) {
+              if (v.ended) return true;
+              const t = v.currentTime || 0;
+              const dur = mediaDuration(v);
+              if (dur && t >= Math.max(0.2, dur - 0.4) && (t > 0.25 || dur <= 1)) return true;
+              if (mem.max > 1 && t + 0.45 < mem.max && mem.max >= (dur ? dur * 0.75 : 1)) return true;
+              return false;
+            }
+            function onTick(v) {
+              if (!v) { hide(); mem.v = null; mem.last = 0; mem.max = 0; mem.armed = false; return; }
+              killLoop(v);
+              if (mem.v !== v) {
+                mem.v = v; mem.last = v.currentTime || 0; mem.max = mem.last; mem.armed = false; mem.hold = false; hide();
+              }
+              const t = v.currentTime || 0;
+              if (t > mem.max) mem.max = t;
+              if (t > 0.35) mem.armed = true;
+              const wrapped = mem.armed && t + 0.55 < mem.last && mem.last > 0.8;
+              mem.last = t;
+              if (mem.hold) {
+                if (!v.paused && t > 0.4 && t < Math.max(1, mem.max - 0.5)) { hide(); return; }
+                show(v);
+                return;
+              }
+              if (mem.armed && (isEnded(v) || wrapped)) show(v);
+              else hide();
+            }
+            function replay(e) {
+              if (e) { e.preventDefault(); e.stopPropagation(); }
+              const v = cardVideo() || mem.v;
+              if (!v) return;
+              killLoop(v);
+              mem.armed = false; mem.last = 0; mem.max = 0; mem.hold = false;
+              hide();
+              try { v.currentTime = 0; } catch (err) {}
+              const p = v.play && v.play();
+              if (p && p.catch) p.catch(function () {});
+            }
+            document.addEventListener('click', function (e) {
+              if (e.target && e.target.closest && e.target.closest('[data-watch-again]')) replay(e);
+            }, true);
+            ['ended', 'timeupdate', 'pause', 'play', 'playing', 'seeked', 'loadedmetadata'].forEach(function (ev) {
+              document.addEventListener(ev, function (e) {
+                if (isLightboxVideo(e.target)) onTick(e.target);
+              }, true);
             });
-          }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['src', 'data-src', 'poster', 'data-poster'] });
+            setInterval(function () {
+              const v = cardVideo();
+              if (!v) { if (mem.v) onTick(null); return; }
+              onTick(v);
+            }, 180);
+            new MutationObserver(function () {
+              const v = cardVideo();
+              if (v) killLoop(v);
+            }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['loop'] });
+          })();
+          (function heroDepthText() {
+            if (!document.getElementById('depth-text-style')) {
+              const stl = document.createElement('style');
+              stl.id = 'depth-text-style';
+              stl.textContent = '.depth-text{display:inline-block;perspective:900px;perspective-origin:50% 48%;isolation:isolate;margin-bottom:0.368em;}.depth-text__stage{position:relative;display:inline-grid;place-items:center;transform-style:preserve-3d;transform:rotateX(-2.4deg) rotateY(3.15deg);transform-origin:50% 50%;will-change:transform;}.depth-text__layer,.depth-text__face{grid-area:1/1;display:inline-block;font-size:inherit;font-weight:inherit;font-family:inherit;letter-spacing:inherit;text-transform:inherit;line-height:0.92;white-space:nowrap;user-select:none;transform-style:preserve-3d;-webkit-backface-visibility:hidden;backface-visibility:hidden;}.depth-text__layer{position:absolute;inset:0;z-index:0;filter:saturate(0.95) brightness(0.92);pointer-events:none;}.depth-text__face{position:relative;z-index:1;color:#f8fafc;text-shadow:0 22px 34px rgba(24,154,255,0.36),0 4px 8px rgba(0,0,0,0.28);transform:translateZ(0.6px);}@media (prefers-reduced-motion:reduce){.depth-text__stage{will-change:auto;}}';
+              document.head.appendChild(stl);
+            }
+            const LAYERS = 34;
+            const DEPTH = 2.4;
+            const TILT = 7.5;
+            const SMOOTH = 0.14;
+            const ORBIT = 0.35;
+            const FACE = { r: 248, g: 250, b: 252 };
+            const DEEP = { r: 24, g: 154, b: 255 };
+            function clamp(v, min, max) { return Math.min(Math.max(v, min), max); }
+            function layerColor(index, total) {
+              const progress = total <= 1 ? 1 : index / total;
+              const eased = progress * progress;
+              const faceMix = ((1 - eased) * 72 + 4) / 100;
+              const r = Math.round(FACE.r * faceMix + DEEP.r * (1 - faceMix));
+              const g = Math.round(FACE.g * faceMix + DEEP.g * (1 - faceMix));
+              const b = Math.round(FACE.b * faceMix + DEEP.b * (1 - faceMix));
+              return 'rgb(' + r + ',' + g + ',' + b + ')';
+            }
+            function currentText(el) {
+              const en = document.documentElement.getAttribute('data-lang') === 'en';
+              return en ? (el.getAttribute('data-depth-en') || 'AI DIRECTOR') : (el.getAttribute('data-depth-ru') || 'AI-РЕЖИССЕР');
+            }
+            function build(el, text) {
+              el.classList.add('depth-text');
+              el.setAttribute('aria-label', text);
+              const stage = document.createElement('span');
+              stage.className = 'depth-text__stage';
+              let html = '';
+              for (let i = 0; i < LAYERS; i++) {
+                const index = LAYERS - i;
+                html += '<span aria-hidden="true" class="depth-text__layer" style="color:' + layerColor(index, LAYERS) + ';transform:translateZ(' + (-index * DEPTH) + 'px)">' + text + '</span>';
+              }
+              html += '<span class="depth-text__face">' + text + '</span>';
+              stage.innerHTML = html;
+              el.textContent = '';
+              el.appendChild(stage);
+              el._depthText = text;
+            }
+            function bindAnim(root) {
+              const stage = root.querySelector('.depth-text__stage');
+              if (!stage || root._depthAnim) return;
+              root._depthAnim = true;
+              const reduced = (function () { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+              const fine = (function () { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; } })();
+              const canTrack = fine && !reduced;
+              const base = { x: -TILT * 0.32, y: TILT * 0.42 };
+              const current = { x: base.x, y: base.y };
+              const target = { x: base.x, y: base.y };
+              let active = false;
+              let start = performance.now();
+              let frameId = 0;
+              const apply = function () {
+                stage.style.transform = 'rotateX(' + current.x.toFixed(3) + 'deg) rotateY(' + current.y.toFixed(3) + 'deg)';
+              };
+              if (reduced) { apply(); return; }
+              const onMove = function (event) {
+                const rect = root.getBoundingClientRect();
+                if (!rect.width || !rect.height) return;
+                active = true;
+                const x = clamp((event.clientX - (rect.left + rect.width / 2)) / (rect.width * 0.8), -1, 1);
+                const y = clamp((event.clientY - (rect.top + rect.height / 2)) / (rect.height * 0.8), -1, 1);
+                target.x = base.x - y * TILT;
+                target.y = base.y + x * TILT;
+              };
+              const onLeave = function () {
+                active = false;
+                target.x = base.x;
+                target.y = base.y;
+              };
+              if (canTrack) {
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerleave', onLeave);
+                window.addEventListener('blur', onLeave);
+              }
+              const tick = function (now) {
+                if (!root.isConnected) {
+                  cancelAnimationFrame(frameId);
+                  root._depthAnim = false;
+                  if (canTrack) {
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerleave', onLeave);
+                    window.removeEventListener('blur', onLeave);
+                  }
+                  return;
+                }
+                if ((!canTrack || !active)) {
+                  const elapsed = (now - start) / 1000;
+                  const orbit = elapsed * ORBIT * Math.PI * 2;
+                  const fallback = canTrack ? 0.18 : 0.55;
+                  target.x = base.x + Math.sin(orbit) * TILT * fallback;
+                  target.y = base.y + Math.cos(orbit * 0.85) * TILT * fallback;
+                }
+                current.x += (target.x - current.x) * SMOOTH;
+                current.y += (target.y - current.y) * SMOOTH;
+                apply();
+                frameId = requestAnimationFrame(tick);
+              };
+              apply();
+              frameId = requestAnimationFrame(tick);
+            }
+            function mountAll() {
+              document.querySelectorAll('[data-depth-text]').forEach(function (el) {
+                const text = currentText(el);
+                if (el.querySelector('.depth-text__stage')) {
+                  if (el._depthText !== text) {
+                    el._depthText = text;
+                    el.setAttribute('aria-label', text);
+                    el.querySelectorAll('.depth-text__layer, .depth-text__face').forEach(function (n) { n.textContent = text; });
+                  }
+                  bindAnim(el);
+                  return;
+                }
+                build(el, text);
+                bindAnim(el);
+              });
+            }
+            window.__syncDepthText = mountAll;
+            mountAll();
+            [400, 1200, 2400].forEach(function (ms) { setTimeout(mountAll, ms); });
+            let depthT = 0;
+            new MutationObserver(function () {
+              clearTimeout(depthT);
+              depthT = setTimeout(mountAll, 60);
+            }).observe(document.documentElement, { childList: true, subtree: true });
+          })();
+          function playLightbox(src) {
+            if (!src || src.indexOf('{{') !== -1) return;
+            document.documentElement.classList.add('lightbox-open');
+            let tries = 0;
+            const tick = function () {
+              formatBenefitEls();
+              const videos = document.querySelectorAll('[style*="z-index:9700"] video');
+              if (videos.length) {
+                videos.forEach(function (v) {
+                  if (src && v.getAttribute('src') !== src) v.src = src;
+                  v.setAttribute('data-lb-player', '');
+                  v.muted = false;
+                  v.loop = false;
+                  v.removeAttribute('loop');
+                  const p = v.play && v.play();
+                  if (p && p.catch) p.catch(function () {});
+                });
+                fitLightbox();
+                return;
+              }
+              tries += 1;
+              if (tries < 40) setTimeout(tick, 50);
+            };
+            tick();
+            [80, 160, 320, 640, 1200].forEach(function (ms) { setTimeout(formatBenefitEls, ms); });
+          }
+          function formatAboutBreak() {
+            if (!document.getElementById('about-bio-justify')) {
+              const stl = document.createElement('style');
+              stl.id = 'about-bio-justify';
+              stl.textContent = '#about [data-about-bio]{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;}#about [data-about-last]{display:block;text-align:left;text-align-last:left;}';
+              document.head.appendChild(stl);
+            }
+            document.querySelectorAll('#about [data-words]').forEach(function (el) {
+              const bioText = el.textContent || '';
+              if (el.hasAttribute('data-about-bio') || /2\+|ГОДА РАБОТЫ|YEARS WORKING/i.test(bioText)) {
+                el.setAttribute('data-about-bio', '');
+                el.style.textAlign = 'justify';
+                el.style.textJustify = 'inter-word';
+                el.style.hyphens = 'auto';
+                el.style.webkitHyphens = 'auto';
+                el.style.textAlignLast = 'auto';
+              }
+              function wrapLast(block) {
+                if (block.querySelector('[data-about-last]')) return;
+                let start = null;
+                const parts = block.querySelectorAll('span');
+                for (let i = 0; i < parts.length; i++) {
+                  const w = (parts[i].textContent || '').replace(/\s+/g, ' ').trim();
+                  if (w === 'РАБОТА' || w === 'TURNKEY') { start = parts[i]; break; }
+                }
+                if (!start) return;
+                if (!block.querySelector('br[data-about-break]')) {
+                  const br = document.createElement('br');
+                  br.setAttribute('data-about-break', '');
+                  start.parentNode.insertBefore(br, start);
+                }
+                const wrap = document.createElement('span');
+                wrap.setAttribute('data-about-last', '');
+                wrap.style.cssText = 'display:block;text-align:left;text-align-last:left;';
+                let node = start;
+                while (node) {
+                  const next = node.nextSibling;
+                  wrap.appendChild(node);
+                  node = next;
+                }
+                block.appendChild(wrap);
+              }
+              wrapLast(el);
+              if (el.querySelector('[data-about-last]') || el.querySelector('br[data-about-break]')) return;
+              const spans = el.querySelectorAll('span');
+              let inserted = false;
+              spans.forEach(function (s) {
+                const w = (s.textContent || '').replace(/\s+/g, ' ').trim();
+                if (w !== 'РАБОТА' && w !== 'TURNKEY') return;
+                const br = document.createElement('br');
+                br.setAttribute('data-about-break', '');
+                s.parentNode.insertBefore(br, s);
+                inserted = true;
+              });
+              if (inserted) return;
+              const t = el.textContent || '';
+              if (t.indexOf('РАБОТА «ПОД КЛЮЧ»') === -1 && t.indexOf('TURNKEY WORK') === -1) return;
+              el.innerHTML = t
+                .replace(/\s*(РАБОТА «ПОД КЛЮЧ»)/, '<br data-about-break="">$1')
+                .replace(/\s*(TURNKEY WORK)/, '<br data-about-break="">$1');
+            });
+          }
+          window.__formatAboutBreak = formatAboutBreak;
+          function formatBenefitEls() {
+            document.querySelectorAll('[data-lightbox-desc], [style*="z-index:9700"] div').forEach(function (el) {
+              if (el.querySelector('div, video, button, img, a, input, source')) return;
+              if (el.querySelector('strong[data-benefit]')) return;
+              const raw0 = el.textContent || '';
+              let raw = raw0;
+              if (raw.indexOf('Ты получаешь контент') !== -1 && raw.indexOf('Выгода: Ты получаешь') === -1) {
+                raw = raw.replace('Ты получаешь контент', 'Выгода: Ты получаешь контент');
+              }
+              if (raw.indexOf('you get content') !== -1 && raw.indexOf('Benefit: you get content') === -1) {
+                raw = raw.replace('you get content', 'Benefit: you get content');
+              }
+              if (raw.indexOf('The content immediately raises') !== -1 && raw.indexOf('Benefit:') === -1) {
+                raw = raw.replace('The content immediately raises', 'Benefit: The content immediately raises');
+              }
+              if (raw.indexOf('Выгода:') === -1 && raw.indexOf('Benefit:') === -1) return;
+              if (raw.replace(/\s+/g, ' ').trim().length < 80) return;
+              el.innerHTML = raw.replace(/\s*(Выгода:|Benefit:)/g, '<br><br><strong data-benefit="" style="font-weight:700;">$1</strong>');
+            });
+          }
+          new MutationObserver(function () { formatBenefitEls(); formatAboutBreak(); fitLightbox(); }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+          function fitLightbox() {
+            const overlay = document.querySelector('[style*="z-index:9700"]');
+            if (!overlay || overlay.clientWidth < 40) return;
+            const videoWrap = overlay.querySelector('[data-lb-video]');
+            const video = overlay.querySelector('[data-lb-player]') || overlay.querySelector('video');
+            const panel = overlay.querySelector('[data-lightbox-panel]');
+            if (!video) return;
+            const availH = overlay.clientHeight - 20;
+            const availW = overlay.clientWidth - 20;
+            const side = availW >= 900;
+            if (side) {
+              const panelW = Math.min(520, Math.max(340, Math.round(availW * 0.4)));
+              if (panel) {
+                panel.style.maxWidth = panelW + 'px';
+                panel.style.maxHeight = availH + 'px';
+                panel.style.overflowY = 'auto';
+              }
+              const vMaxH = Math.max(260, Math.min(Math.round(availH * 0.7), availH - 12));
+              const vMaxW = Math.max(300, availW - panelW - 56);
+              if (videoWrap) {
+                videoWrap.style.maxHeight = vMaxH + 'px';
+                videoWrap.style.maxWidth = vMaxW + 'px';
+              }
+              video.style.maxHeight = vMaxH + 'px';
+            } else {
+              const vMaxH = Math.max(170, Math.min(Math.round(availH * 0.4), 340));
+              if (videoWrap) {
+                videoWrap.style.maxHeight = vMaxH + 'px';
+                videoWrap.style.maxWidth = '100%';
+              }
+              video.style.maxHeight = vMaxH + 'px';
+              if (panel) {
+                panel.style.maxHeight = Math.max(160, availH - vMaxH - 16) + 'px';
+                panel.style.overflowY = 'auto';
+                panel.style.maxWidth = '100%';
+              }
+            }
+          }
+          window.addEventListener('resize', function () { fitLightbox(); });
+          [400, 1200, 2800].forEach(function (ms) { setTimeout(loopSpiralVideos, ms); });
+          (function bootPct() {
+            const wrap = document.getElementById('site-boot-loader');
+            const el = document.getElementById('site-boot-pct');
+            if (!wrap || !el) return;
+            let shown = 52;
+            let target = 56;
+            let done = false;
+            function paint() {
+              shown += (target - shown) * 0.14;
+              if (Math.abs(target - shown) < 0.35) shown = target;
+              el.textContent = Math.round(shown) + '%';
+              if (done && shown >= 99.2) {
+                wrap.style.transition = 'opacity .4s ease';
+                wrap.style.opacity = '0';
+                setTimeout(function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); }, 420);
+                return;
+              }
+              requestAnimationFrame(paint);
+            }
+            requestAnimationFrame(paint);
+            function tick() {
+              const bgs = Array.prototype.slice.call(document.querySelectorAll('video[data-bg]'));
+              const others = Array.prototype.slice.call(document.querySelectorAll('video:not([data-bg])'));
+              let bgReady = 0;
+              bgs.forEach(function (v) { if (v.readyState >= 2) bgReady += 1; });
+              let otherReady = 0;
+              others.forEach(function (v) { if (v.readyState >= 2) otherReady += 1; });
+              const bgPart = bgs.length ? (bgReady / bgs.length) * 30 : 30;
+              const restPart = others.length ? (otherReady / others.length) * 14 : 14;
+              target = Math.max(target, Math.min(99, 56 + bgPart + restPart));
+              if ((bgs.length && bgReady >= 1 && target >= 84) || (bgReady >= bgs.length && otherReady >= Math.min(2, others.length))) {
+                target = 100;
+                done = true;
+              }
+            }
+            const iv = setInterval(tick, 160);
+            setTimeout(function () { target = 100; done = true; clearInterval(iv); }, 9000);
+            tick();
+          })();
+          document.addEventListener('click', function (e) {
+            if (e.target && e.target.closest && e.target.closest('[data-watch-again]')) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            const closeBtn = e.target && e.target.closest && e.target.closest('[style*="z-index:9700"] button');
+            if (closeBtn && !(closeBtn.getAttribute && closeBtn.getAttribute('data-watch-again'))) {
+              document.documentElement.classList.remove('lightbox-open');
+              return;
+            }
+            const card = e.target && e.target.closest && e.target.closest('[data-play]');
+            if (!card) return;
+            const src = card.getAttribute('data-src') || (card.querySelector('video') && (card.querySelector('video').currentSrc || card.querySelector('video').getAttribute('src')));
+            if (src) playLightbox(src);
+          }, true);
+          function tr(s) { return (window.__tr && window.__tr(s)) || s; }
           const EMAIL = 'sofyat@yandex.ru';
           const MAILTO = 'mailto:' + EMAIL + '?subject=' + encodeURIComponent('Начать проект');
           if (!document.getElementById('native-cursor-style')) {
             const cursorStyle = document.createElement('style');
             cursorStyle.id = 'native-cursor-style';
-            cursorStyle.textContent = 'html.show-native-cursor, html.show-native-cursor * { cursor: auto !important; } html.show-native-cursor a, html.show-native-cursor button { cursor: pointer !important; } html.show-native-cursor input { cursor: text !important; } html.show-native-cursor input[type="checkbox"] { cursor: pointer !important; }';
+            cursorStyle.textContent = 'html.show-native-cursor, html.show-native-cursor * { cursor: auto !important; } html.show-native-cursor a, html.show-native-cursor button { cursor: pointer !important; } html.show-native-cursor input { cursor: text !important; } html.show-native-cursor input[type="checkbox"] { cursor: pointer !important; }html.show-native-cursor [data-glass-cursor],html.show-native-cursor [data-cursor-dot]{visibility:hidden !important;}[data-glass-cursor]{position:relative;overflow:hidden;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.55) !important;backdrop-filter:blur(7px) saturate(1.55) contrast(1.12);-webkit-backdrop-filter:blur(7px) saturate(1.55) contrast(1.12);box-shadow:inset 0 1px 1px rgba(255,255,255,0.7),inset 0 -10px 14px rgba(255,255,255,0.08),inset 1.2px 0 0 rgba(255,70,90,0.28),inset -1.2px 0 0 rgba(80,190,255,0.32),0 6px 16px rgba(0,0,0,0.28);}[data-glass-cursor]::before{content:"";position:absolute;left:18%;top:12%;width:42%;height:22%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.7),rgba(255,255,255,0));pointer-events:none;}[data-cursor-dot]{background:rgba(255,255,255,0.92) !important;box-shadow:0 0 8px rgba(255,255,255,0.35);}';
             document.head.appendChild(cursorStyle);
           }
           function showNativeCursor(keepMs) {
@@ -781,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!link || !link.getAttribute) return false;
             const href = link.getAttribute('href') || '';
             const label = (link.textContent || '').replace(/\\s+/g, ' ').trim();
-            if (/начать\\s*проект/i.test(label)) return false;
+            if (/начать\\s*проект/i.test(label) || /start\\s+a\\s+project/i.test(label) || /оставить\\s*заявку/i.test(label) || /leave\\s+a\\s+request/i.test(label)) return false;
             return /^mailto:/i.test(href) || /^email\\b/i.test(label);
           }
           function findMailLink(e) {
@@ -803,13 +1288,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;cursor:auto;';
             showNativeCursor();
             overlay.innerHTML = '<div style="width:min(420px,100%);background:#0a0a0a;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;color:#fff;font-family:Geist Mono,ui-monospace,monospace;">'
-              + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:10px;">Написать письмо</div>'
+              + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:10px;">' + tr('Написать письмо') + '</div>'
               + '<div style="font-size:16px;margin-bottom:22px;">' + EMAIL + '</div>'
-              + '<a data-mail-open="' + MAILTO + '" style="display:block;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.7);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">Почтовая программа</a>'
+              + '<a data-mail-open="mailto:' + EMAIL + '?subject=' + encodeURIComponent(tr('Начать проект')) + '" style="display:block;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.7);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">' + tr('Почтовая программа') + '</a>'
               + '<a data-mail-open="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(EMAIL) + '" target="_blank" rel="noopener" style="display:block;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.28);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">Gmail</a>'
-              + '<a data-mail-open="https://mail.yandex.ru/#compose?to=' + encodeURIComponent(EMAIL) + '" target="_blank" rel="noopener" style="display:block;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.28);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">Яндекс Почта</a>'
+              + '<a data-mail-open="https://mail.yandex.ru/#compose?to=' + encodeURIComponent(EMAIL) + '" target="_blank" rel="noopener" style="display:block;margin:0 0 10px;padding:12px 14px;border:1px solid rgba(255,255,255,0.28);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">' + tr('Яндекс Почта') + '</a>'
               + '<a data-mail-open="https://outlook.live.com/mail/0/deeplink/compose?to=' + encodeURIComponent(EMAIL) + '" target="_blank" rel="noopener" style="display:block;margin:0 0 18px;padding:12px 14px;border:1px solid rgba(255,255,255,0.28);color:#fff;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;">Outlook</a>'
-              + '<button type="button" data-mail-close="1" style="background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Закрыть</button>'
+              + '<button type="button" data-mail-close="1" style="background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">' + tr('Закрыть') + '</button>'
               + '</div>';
             overlay.addEventListener('click', function (ev) {
               if (ev.target === overlay || ev.target.getAttribute('data-mail-close')) {
@@ -836,20 +1321,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             overlay.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:24px;cursor:auto;';
             overlay.innerHTML = '<div data-form-card="1" style="width:min(460px,100%);background:#0a0a0a;border:1px solid rgba(255,255,255,0.18);padding:28px 24px;color:#fff;font-family:Geist Mono,ui-monospace,monospace;">'
               + '<form novalidate="novalidate">'
-              + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:8px;">Начать проект</div>'
-              + '<div style="font-size:18px;margin-bottom:22px;letter-spacing:-0.02em;">Оставьте контакты</div>'
-              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Имя'
+              + '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:8px;">' + tr('Начать проект') + '</div>'
+              + '<div style="font-size:18px;margin-bottom:22px;letter-spacing:-0.02em;">' + tr('Оставьте контакты') + '</div>'
+              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">' + tr('Имя')
               + '<input name="name" required autocomplete="name" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
-              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Почта'
+              + '<label style="display:block;margin:0 0 14px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">' + tr('Почта')
               + '<input name="email" type="email" required autocomplete="email" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
-              + '<label style="display:block;margin:0 0 18px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Телефон'
+              + '<label style="display:block;margin:0 0 18px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.55);">' + tr('Телефон')
               + '<input name="phone" type="tel" required autocomplete="tel" style="display:block;width:100%;margin-top:8px;padding:12px 14px;background:#111;border:1px solid rgba(255,255,255,0.28);color:#fff;font:inherit;letter-spacing:0.04em;text-transform:none;"></label>'
               + '<label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 22px;font-size:11px;line-height:1.45;letter-spacing:0.02em;text-transform:none;color:rgba(255,255,255,0.7);">'
               + '<input name="consent" type="checkbox" required style="margin-top:3px;flex:0 0 auto;accent-color:#1B45FF;">'
-              + '<span>Даю согласие на обработку моих персональных данных</span></label>'
-              + '<button type="submit" data-form-submit="1" style="display:block;width:100%;margin:0 0 12px;padding:14px 16px;background:#fff;border:1px solid #fff;color:#000;font:inherit;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Отправить</button>'
+              + '<span>' + tr('Даю согласие на обработку моих персональных данных') + '</span></label>'
+              + '<button type="submit" data-form-submit="1" style="display:block;width:100%;margin:0 0 12px;padding:14px 16px;background:#fff;border:1px solid #fff;color:#000;font:inherit;letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">' + tr('Отправить') + '</button>'
               + '</form>'
-              + '<button type="button" data-form-close="1" style="display:block;width:100%;background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">Закрыть</button>'
+              + '<button type="button" data-form-close="1" style="display:block;width:100%;background:none;border:none;color:rgba(255,255,255,0.55);letter-spacing:0.12em;text-transform:uppercase;font-size:11px;cursor:pointer;">' + tr('Закрыть') + '</button>'
               + '<div data-form-status="1" style="margin-top:12px;font-size:11px;line-height:1.5;color:rgba(255,255,255,0.6);"></div>'
               + '</div>';
             function closeForm(ev) {
@@ -872,23 +1357,23 @@ document.addEventListener('DOMContentLoaded', async function() {
               const status = overlay.querySelector('[data-form-status]');
               const submitBtn = overlay.querySelector('[data-form-submit]');
               if (!name || !email || !phone) {
-                status.textContent = 'Заполните имя, почту и телефон.';
+                status.textContent = tr('Заполните имя, почту и телефон.');
                 return;
               }
               if (!data.get('consent')) {
-                status.textContent = 'Отметьте согласие на обработку персональных данных.';
+                status.textContent = tr('Отметьте согласие на обработку персональных данных.');
                 return;
               }
               submitBtn.disabled = true;
-              submitBtn.textContent = 'Отправка…';
-              status.textContent = 'Отправляю заявку…';
+              submitBtn.textContent = tr('Отправка…');
+              status.textContent = tr('Отправляю заявку…');
               const text = 'Новая заявка с сайта\\n\\nИмя: ' + name + '\\nПочта: ' + email + '\\nТелефон: ' + phone + '\\nСогласие: да';
               const token = '8468132967:AAHFISoOLy315JSeDZmCJKEwjnI2Y2JUPog';
               const chatId = '1739951658';
               const api = 'https://api.telegram.org/bot' + token + '/sendMessage';
               function doneOk() {
-                submitBtn.textContent = 'Готово';
-                status.textContent = 'Заявка отправлена. Окно закроется.';
+                submitBtn.textContent = tr('Готово');
+                status.textContent = tr('Заявка отправлена. Окно закроется.');
                 setTimeout(function () { overlay.remove(); hideNativeCursor(); }, 1400);
               }
               fetch(api, {
@@ -929,25 +1414,39 @@ document.addEventListener('DOMContentLoaded', async function() {
           window.__openProjectForm = showProjectForm;
           const TELEGRAM_APP = 'tg://resolve?domain=sofyat_makeup';
           const TELEGRAM_WEB = 'https://t.me/sofyat_makeup';
-          function openTelegramChat() {
+          function openTelegramChat(href) {
+            const raw = String(href || '');
+            let web = TELEGRAM_WEB;
+            let app = TELEGRAM_APP;
+            const m = raw.match(/t\\.me\\/([A-Za-z0-9_]+)/i) || raw.match(/domain=([A-Za-z0-9_]+)/i);
+            if (m) {
+              web = 'https://t.me/' + m[1];
+              app = 'tg://resolve?domain=' + m[1];
+            } else if (/^https?:/i.test(raw) || /^tg:/i.test(raw)) {
+              web = raw;
+              app = raw;
+            }
             const appLink = document.createElement('a');
-            appLink.href = TELEGRAM_APP;
+            appLink.href = app;
             appLink.style.display = 'none';
             document.body.appendChild(appLink);
             appLink.click();
             appLink.remove();
-            window.open(TELEGRAM_WEB, '_blank', 'noopener');
+            window.open(web, '_blank', 'noopener');
           }
           function isTelegramTrigger(el) {
             if (!el || !el.tagName) return false;
+            if (el.getAttribute && el.getAttribute('data-tg-native')) return false;
             const href = (el.getAttribute && el.getAttribute('href')) || '';
+            if (/neirocreator_Sofya/i.test(href)) return false;
+            if (/^https?:/i.test(href) && /t\\.me\\//i.test(href)) return false;
             const label = (el.textContent || '').replace(/\\s+/g, ' ').trim();
-            return /t\\.me\\//i.test(href) || /^tg:/i.test(href) || /^telegram\\b/i.test(label);
+            return /^tg:/i.test(href) || /^telegram\\b/i.test(label);
           }
           function isProjectTrigger(el) {
             if (!el || !el.tagName) return false;
             const label = (el.textContent || '').replace(/\\s+/g, ' ').trim();
-            return /^начать\\s*проект$/i.test(label);
+            return /^начать\\s*проект$/i.test(label) || /^start\\s+a\\s+project$/i.test(label) || /^оставить\\s*заявку$/i.test(label) || /^leave\\s+a\\s+request$/i.test(label);
           }
           function isMailTrigger(el) {
             if (!el || !el.tagName) return false;
@@ -961,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', async function() {
               if (isTelegramTrigger(path[i])) {
                 e.preventDefault();
                 e.stopPropagation();
-                openTelegramChat();
+                openTelegramChat((path[i].getAttribute && path[i].getAttribute('href')) || '');
                 return;
               }
             }
@@ -995,14 +1494,33 @@ document.addEventListener('DOMContentLoaded', async function() {
       );
       template = template.replace(
         'closeLightbox = (e) => { if (e) { e.stopPropagation(); } this.setState({ lightbox: null }); };',
-        'closeLightbox = (e) => { if (e) { e.stopPropagation(); } this.setState({ lightbox: null }); };\n  openMail = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (window.__openProjectForm) window.__openProjectForm(); };'
+        'closeLightbox = (e) => { if (e) { e.stopPropagation(); } try { document.documentElement.classList.remove("lightbox-open"); } catch (err) {} this.setState({ lightbox: null }); };\n  openMail = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } if (window.__openProjectForm) window.__openProjectForm(); };'
       );
       template = template.replace(
         'closeLightbox: this.closeLightbox,',
         'closeLightbox: this.closeLightbox,\n      openMail: this.openMail,'
       );
-      template = template.replace(/assets\/video\/([^"' ]+)\.mp4/g, 'https://res.cloudinary.com/feda8ztg/video/upload/$1.mp4');
-      template = template.replace(/assets\/video\/([^"' ]+)\.jpg/g, 'https://res.cloudinary.com/feda8ztg/image/upload/$1.jpg');
+      template = template.replace(
+        "el.setAttribute('data-play', '');",
+        "el.setAttribute('data-play', '');\n      el.setAttribute('data-src', this.fullSrc(c));"
+      );
+      template = template.replace(
+        'openCase(c) {\n    this.setState({',
+        'openCase(c) {\n    try { document.documentElement.classList.add("lightbox-open"); } catch (e) {}\n    this.setState({'
+      );
+      template = template.replace(
+        'this.setState({\n      lightbox: {\n        title: c.dataset.title,',
+        'try { document.documentElement.classList.add("lightbox-open"); } catch (e) {}\n    this.setState({\n      lightbox: {\n        title: c.dataset.title,'
+      );
+      if (location.protocol === 'file:') {
+        template = template.replace(/https:\/\/res\.cloudinary\.com\/feda8ztg\/video\/upload\/(?:q_auto[^/]*\/)?([^"' ]+\.mp4)/g, 'assets/video/$1');
+        template = template.replace(/https:\/\/res\.cloudinary\.com\/feda8ztg\/image\/upload\/(?:q_auto[^/]*\/)?([^"' ]+\.jpg)/g, 'assets/video/$1');
+      } else {
+        template = template.replace(/assets\/video\/([^"' ]+)\.mp4/g, 'https://res.cloudinary.com/feda8ztg/video/upload/q_auto,c_limit,w_1600/$1.mp4');
+        template = template.replace(/assets\/video\/([^"' ]+)\.jpg/g, 'https://res.cloudinary.com/feda8ztg/image/upload/q_auto,f_auto,c_limit,w_1400/$1.jpg');
+        template = template.replace(/https:\/\/res\.cloudinary\.com\/feda8ztg\/video\/upload\/(?!q_auto)([^"']+\.mp4)/g, 'https://res.cloudinary.com/feda8ztg/video/upload/q_auto,c_limit,w_1600/$1');
+      }
+      template = template.replace(/(<video[^>]*data-bg=""[^>]*preload=")(?:none|metadata)(")/g, '$1auto$2');
       template = template.replace('</body></html>', contactSafetyFix + '</body></html>');
       templateElement.textContent = JSON.stringify(template);
     }
@@ -1013,15 +1531,125 @@ document.addEventListener('DOMContentLoaded', async function() {
       let template = JSON.parse(templateElement.textContent);
       template = template.replace(
         'position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,4vw,64px);cursor:none;',
-        'position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,4vw,64px);cursor:auto;'
+        'position:fixed;inset:0;z-index:9700;background:rgba(0,0,0,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(12px,2.2vw,36px) clamp(16px,3vw,48px);cursor:auto;'
       );
       template = template.replace(
         "sc-camel-on-click=\"{{ closeLightbox }}\" style=\"position:absolute;top:24px;right:clamp(24px,4vw,48px);background:none;border:none;color:#fff;font-family:'Geist Mono',monospace;font-size:22px;line-height:1;cursor:none;\"",
         "sc-camel-on-click=\"{{ closeLightbox }}\" style=\"position:absolute;top:24px;right:clamp(24px,4vw,48px);background:none;border:none;color:#fff;font-family:'Geist Mono',monospace;font-size:22px;line-height:1;cursor:pointer;\""
       );
       template = template.replace(
-        '<video controls="" autoplay="" loop="" playsinline="" src="{{ lightbox.src }}" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;">',
-        '<video controls="" loop="" playsinline="" src="" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;cursor:auto;">'
+        'display:flex;flex-wrap:wrap;align-items:stretch;justify-content:center;gap:clamp(20px,2.5vw,40px);width:min(1500px,100%);max-height:84vh;',
+        'display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:clamp(16px,2vw,28px);width:min(1520px,100%);max-height:94vh;overflow:auto;'
+      );
+      template = template.replace(
+        '<div style="flex:0 1 340px;min-width:260px;display:flex;flex-direction:column;justify-content:center;gap:16px;border-left:1px solid var(--line);padding-left:clamp(18px,2vw,32px);">',
+        '<div data-lightbox-panel="" style="flex:1 1 420px;min-width:280px;max-width:520px;display:flex;flex-direction:column;justify-content:flex-start;gap:12px;border-left:1px solid var(--line);padding-left:clamp(16px,2vw,28px);max-height:90vh;overflow-y:auto;">'
+      );
+      if (template.indexOf('data-lb-player') === -1) {
+        template = template.replace(
+          '<video controls="" autoplay="" loop="" playsinline="" src="{{ lightbox.src }}" style="flex:1 1 460px;min-width:0;max-height:80vh;object-fit:contain;border:1px solid var(--line);background:#000;"></video>',
+          '<div data-lb-video="" style="position:relative;flex:1 1 340px;min-width:0;max-width:54%;max-height:58vh;display:flex;align-items:center;justify-content:center;"><video data-lb-player="" controls="" autoplay="" playsinline="" src="{{ lightbox.src }}" style="width:100%;height:auto;max-height:58vh;object-fit:contain;border:1px solid var(--line);background:#000;"></video><button type="button" data-watch-again="" hidden style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;">Смотреть ещё раз</button></div>'
+        );
+        template = template.replace(
+          '<video controls="" autoplay="" playsinline="" src="{{ lightbox.src }}"',
+          '<video data-lb-player="" controls="" autoplay="" playsinline="" src="{{ lightbox.src }}"'
+        );
+      }
+      template = template.replace(
+        '<video controls="" autoplay="" loop="" playsinline="" src="{{ lightbox.src }}"',
+        '<video data-lb-player="" controls="" autoplay="" playsinline="" src="{{ lightbox.src }}"'
+      );
+      template = template.replace(
+        "v.setAttribute('loop', '');\n    v.setAttribute('playsinline', '');",
+        "v.setAttribute('loop', '');\n    v.setAttribute('playsinline', '');\n    v.addEventListener('ended', () => { try { v.currentTime = 0; } catch (e) {} const p = v.play && v.play(); if (p && p.catch) p.catch(() => {}); });"
+      );
+      template = template.replace(
+        '<div data-words="" style="font-size:clamp(40px,6vw,120px);">AI-РЕЖИССЕР</div>',
+        '<div data-depth-text="" data-depth-ru="AI-РЕЖИССЕР" data-depth-en="AI DIRECTOR" class="depth-text" style="font-size:clamp(40px,6vw,120px);">AI-РЕЖИССЕР</div>'
+      );
+      template = template.replace(
+        'pointer-events:none;width:40px;height:40px;margin:-20px 0 0 -20px;border:1px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:\'Geist Mono\',monospace;font-size:9px;letter-spacing:0.15em;color:var(--accent);opacity:0;will-change:transform;">PLAY',
+        'pointer-events:none;width:48px;height:48px;margin:-24px 0 0 -24px;border:1px solid rgba(255,255,255,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:\'Geist Mono\',monospace;font-size:12px;letter-spacing:0.15em;color:var(--accent);opacity:0;will-change:transform;" data-glass-cursor="">PLAY'
+      );
+      template = template.replace(
+        'pointer-events:none;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;will-change:transform;"',
+        'pointer-events:none;width:7.5px;height:7.5px;margin:-3.75px 0 0 -3.75px;border-radius:50%;background:#fff;will-change:transform;" data-cursor-dot=""'
+      );
+      template = template.replace(
+        "if (this._mode === 'play') { s = 2.4; op = 1; showPlay = 1; }\n        else if (this._mode === 'link') { s = 1.9; op = 0.9; }",
+        "if (this._mode === 'play') { s = 1.92; op = 1; showPlay = 1; }\n        else if (this._mode === 'link') { s = 1.52; op = 0.9; }"
+      );
+      template = template.replace(
+        "document.querySelectorAll('[data-words]').forEach((el) => { this.splitWords(el); this._revealEls.push(el); });",
+        "document.querySelectorAll('[data-words]').forEach((el) => { if (el.closest('[data-depth-text]')) return; this.splitWords(el); this._revealEls.push(el); });"
+      );
+      template = template.replace(
+        'font-size:clamp(26px,3.6vw,58px);color:rgba(255,255,255,0.9);">Видение режиссёра',
+        'font-size:clamp(21px,2.88vw,46px);color:rgba(255,255,255,0.9);">Видение режиссёра'
+      );
+      template = template.replace(
+        "margin:clamp(28px,4vw,52px) 0 0;max-width:720px;font-family:'Geist Mono',monospace;font-weight:300;font-size:clamp(12px,1.1vw,15px);line-height:1.9;letter-spacing:0.02em;color:rgba(255,255,255,0.5);",
+        "margin:clamp(28px,4vw,52px) 0 0;max-width:720px;font-family:'Geist Mono',monospace;font-weight:300;font-size:clamp(12px,1.1vw,15px);line-height:1.9;letter-spacing:0.02em;color:rgba(255,255,255,0.5);text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;"
+      );
+      template = template.replace(
+        '<p data-words="" style="margin:clamp(28px,4vw,52px) 0 0;max-width:720px;',
+        '<p data-words="" data-about-bio="" style="margin:clamp(28px,4vw,52px) 0 0;max-width:720px;'
+      );
+      template = template.replace(
+        '<div data-rcat="" style="font-family:\'Geist Mono\',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);">',
+        '<div data-rcat="" style="font-family:\'Geist Mono\',monospace;font-size:11.7px;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);">'
+      );
+      template = template.replace(
+        '<div data-rtitle="" style="font-size:12.5px;font-weight:300;letter-spacing:-0.01em;color:rgba(255,255,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">',
+        '<div data-rtitle="" style="font-size:16.25px;font-weight:300;letter-spacing:-0.01em;color:rgba(255,255,255,0.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+      );
+      template = template.replace(
+        'font-size:clamp(38px,7vw,120px);">Давайте создадим эффективный',
+        'font-size:clamp(27px,4.9vw,84px);">Давайте создадим эффективный'
+      );
+      template = template.replace(
+        'font-size:clamp(38px,7vw,120px);"><span style="color:var(--accent);">AI-проект</span> вместе',
+        'font-size:clamp(27px,4.9vw,84px);"><span style="color:var(--accent);">AI-проект</span> вместе'
+      );
+      template = template.replace(
+        "display:inline-block;border:1px solid rgba(255,255,255,0.7);color:#fff;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;padding:16px 32px;border-radius:100px;cursor:none;transition:background .35s ease,color .35s ease;\">Начать проект</a>",
+        "display:inline-block;border:1px solid #fff;color:#fff;background:rgba(255,255,255,0.18);font-family:'Geist Mono',monospace;font-size:13.2px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;padding:19px 38px;border-radius:100px;cursor:none;transition:background .35s ease,color .35s ease;\">Оставить заявку</a>"
+      );
+      template = template.replace(
+        "gap:clamp(20px,3vw,44px);font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;",
+        "gap:clamp(20px,3vw,44px);font-family:'Geist Mono',monospace;font-size:13.2px;letter-spacing:0.12em;text-transform:uppercase;"
+      );
+      template = template.replace(
+        'style="color:rgba(255,255,255,0.7);cursor:none;">Email →</a>',
+        'style="color:rgba(255,255,255,0.95);cursor:none;">Email →</a>'
+      );
+      template = template.replace(
+        'style="color:rgba(255,255,255,0.7);cursor:none;">TELEPHONE: +7 910 211 31 87</a>\n      <a href="tg://resolve?domain=sofyat_makeup"',
+        'style="color:rgba(255,255,255,0.95);cursor:none;">TELEPHONE: +7 910 211 31 87</a>\n      <a href="tg://resolve?domain=sofyat_makeup"'
+      );
+      template = template.replace(
+        'style="color:rgba(255,255,255,0.7);cursor:none;">Telegram ↗</a>',
+        'style="color:rgba(255,255,255,0.95);cursor:none;">Telegram ↗</a>'
+      );
+      template = template.replace(
+        'font-weight:600;text-transform:uppercase;letter-spacing:-0.02em;line-height:1.05;font-size:clamp(20px,2.2vw,34px);color:rgba(255,255,255,0.95);',
+        'font-weight:600;text-transform:uppercase;letter-spacing:-0.03em;line-height:1.1;font-size:clamp(16px,1.65vw,24px);color:rgba(255,255,255,0.95);overflow-wrap:anywhere;'
+      );
+      template = template.replace(
+        'font-size:13.5px;font-weight:300;line-height:1.65;color:rgba(255,255,255,0.6);">{{ lightbox.desc }}',
+        'font-size:14.85px;font-weight:300;line-height:1.65;color:rgba(255,255,255,0.6);text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word;" data-lightbox-desc="">{{ lightbox.desc }}'
+      );
+      template = template.replace(
+        'margin-top:8px;max-width:520px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);',
+        'margin-top:8px;max-width:520px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;'
+      );
+      template = template.replace(
+        'margin-top:8px;max-width:560px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);',
+        'margin-top:8px;max-width:560px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;'
+      );
+      template = template.replace(
+        'display:none;margin-top:8px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);',
+        'display:none;margin-top:8px;font-size:13px;line-height:1.5;font-weight:300;color:rgba(255,255,255,0.55);text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;'
       );
       template = template.replace(
         'В ПРОДАКШЕНЕ FILMWAY AI.',
@@ -1037,12 +1665,245 @@ document.addEventListener('DOMContentLoaded', async function() {
       );
       template = template.replace(
         '<div style="color:rgba(255,255,255,0.3);">Избранное — 06</div>',
-        '<a href="https://disk.yandex.ru/d/IJV6PDzQ_mXjmQ" target="_blank" rel="noopener" data-cursor="link" style="color:rgba(255,255,255,0.3);cursor:none;text-decoration:none;">Портфолио</a>'
+        '<span style="display:inline-flex;align-items:baseline;gap:clamp(16px,2.4vw,34px);"><a href="https://t.me/neirocreator_Sofya" target="_blank" rel="noopener noreferrer" data-tg-native="1" data-cursor="link" style="color:rgba(255,255,255,0.3);cursor:none;text-decoration:none;">Моя группа в Telegram</a><a href="https://disk.yandex.ru/d/IJV6PDzQ_mXjmQ" target="_blank" rel="noopener" data-cursor="link" style="color:rgba(255,255,255,0.3);cursor:none;text-decoration:none;">Портфолио</a></span>'
+      );
+      template = template.replace(
+        "%3Ctext x='32' y='43' font-family='monospace' font-size='25' font-weight='700' fill='%23ffffff' text-anchor='middle'%3E%D0%AE%D0%9A%3C/text%3E",
+        "%3Ctext x='32' y='43' font-family='monospace' font-size='22' font-weight='700' fill='%23ffffff' text-anchor='middle'%3E%D0%A1%D0%A2%3C/text%3E"
+      );
+      template = template.replace(
+        "lightbox: { title: c.title, meta: c.meta, src: this.fullSrc(c), cat: c.n + ' / ' + c.cat, sub: c.sub, desc: c.desc }",
+        "lightbox: { title: (window.__tr?window.__tr(c.title):c.title), meta: (window.__tr?window.__tr(c.meta):c.meta), src: this.fullSrc(c), cat: c.n + ' / ' + (window.__tr?window.__tr(c.cat):c.cat), sub: (window.__tr?window.__tr(c.sub):c.sub), desc: (window.__tr?window.__tr(c.desc):c.desc) }"
+      );
+      template = template.replace(
+        'cat.textContent = c.cat;',
+        'cat.textContent = (window.__tr?window.__tr(c.cat):c.cat);'
+      );
+      template = template.replace(
+        "if (cat) cat.textContent = c.n + ' / ' + c.cat;\n      if (ti) ti.textContent = c.title;",
+        "if (cat) cat.textContent = c.n + ' / ' + (window.__tr?window.__tr(c.cat):c.cat);\n      if (ti) ti.textContent = (window.__tr?window.__tr(c.title):c.title);"
+      );
+      template = template.replace(
+        '<a href="#hero" data-cursor="link" style="color:#fff;cursor:none;">СОФЬЯ</a>',
+        '<div style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;"><a href="#hero" data-cursor="link" style="color:#fff;cursor:none;">СОФЬЯ</a><div data-lang-switch="" style="display:flex;align-items:baseline;gap:7px;font-family:\'Geist Mono\',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;"><button type="button" data-lang="ru" data-cursor="link" aria-pressed="true" style="background:none;border:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:rgba(255,255,255,0.95);text-decoration:underline;text-underline-offset:3px;cursor:none;">Ru</button><span aria-hidden="true" style="color:rgba(255,255,255,0.35);">/</span><button type="button" data-lang="en" data-cursor="link" aria-pressed="false" style="background:none;border:none;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:rgba(255,255,255,0.4);text-decoration:none;cursor:none;">Eng</button></div></div>'
+      );
+      const i18nRuntime = `<script>
+        (function () {
+          var pairs = [
+            ['Никакой съёмочной группы. Никакой аренды локации. Никаких «а давайте перенесём съёмки на завтра, актёр заболел». Это видео — полностью сгенерировано ИИ. Люди, локация, свет, эмоции — всё выглядит так, будто это отсняла профессиональная команда за один съёмочный день с бюджетом в сотни тысяч. А по факту — это результат работы нейросети и правильного промпта. Выгода: идеально для рекламных роликов, сюжетных сцен, презентаций бренда — когда нужна «настоящая» картинка, но без настоящих затрат на продакшн.', 'No film crew. No location rental. No “let’s move the shoot to tomorrow, the actor is sick.” This video is fully AI-generated. People, location, light, emotion — it looks as if a professional crew shot it in a single day on a budget of hundreds of thousands. In reality it is a neural network and the right prompt. Benefit: ideal for commercials, story scenes and brand films — when you need a “real” picture without real production costs.'],
+            ['Уровень глянцевого журнала — без бюджета глянцевого журнала. Обычно такая эдиториальная съёмка — это модель, стилист, визажист, фотограф, студия и минимум день работы. Итог: от 100 000 ₽ и неделя ожидания готового материала. Здесь тот же результат — за часы и в разы дешевле. Выгода: Ты получаешь контент, который сразу поднимает восприятие бренда: клиенты видят «дорогую» картинку и подсознательно доверяют продукту больше. Это работает и на прямые продажи, и на узнаваемость в соцсетях — контент такого уровня сложнее пролистать в ленте. Идеально, если нужно быстро закрыть съёмку под запуск коллекции, рекламную кампанию или контент-план на месяц вперёд.', 'Glossy-magazine level — without a glossy-magazine budget. A shoot like this usually means a model, stylist, makeup artist, photographer, studio and at least a full day. The result: from 100,000 ₽ and a week of waiting. Here you get the same outcome in hours, at a fraction of the cost. Benefit: you get content that immediately raises how the brand is perceived: clients see an expensive picture and trust the product more. It works for sales and for social recognition — this kind of frame is harder to scroll past. Ideal when you need a campaign, a collection launch or a month of content fast.'],
+            ['Смена локаций, эффектные ракурсы, атмосфера, которая держит зрителя до последней секунды — уровень клипа, под который обычно нужен целый съёмочный день, несколько локаций, стилист, оператор с операторским краном и хороший бюджет на постпродакшн. Здесь всё это заменяет нейросеть: любые декорации, любая атмосфера, любой визуальный стиль — без аренды, без логистики, без пересъёмок из-за погоды или занятой площадки. Выгода: артист или лейбл получает клип премиум-уровня за долю привычного бюджета и в разы быстрее — что особенно критично, когда трек нужно выпускать «пока горячо», а не через месяц согласований со съёмочной командой. Формат отлично подходит для музыкантов, лейблов и продюсеров, которым нужен яркий визуал под трек — без затрат на классический клип-продакшн.', 'Changing locations, striking angles, an atmosphere that holds the viewer until the last second — the level of a music video that usually takes a full shoot day, several locations, a stylist, a crane and a serious post-production budget. Here a neural network replaces all of that: any set, any mood, any visual style — no rentals, no logistics, no reshoots because of weather or a booked stage. Benefit: an artist or label gets a premium video for a fraction of the usual budget and much faster — critical when a track has to drop while it is hot, not a month later. Perfect for musicians, labels and producers who need a strong visual for a track without classic music-video production costs.'],
+            ['Динамика, свет, идеальный кадр — герой в движении, эффектные планы, монтаж как в дорогом рекламном ролике федерального уровня. Обычно за такую съёмку платят за локацию, актёров, операторскую группу с техникой для динамичных сцен — счёт легко уходит в миллионы, плюс недели согласований и монтажа. Здесь тот же уровень «вау» — за считаные дни и без съёмочной площадки. Ты получаешь ролик, который сразу продаёт эмоцию — а именно на эмоциях держится любая реклама, будь то авто, техника, недвижимость или услуги. Выгода: экономия в разы на бюджете продакшна, съёмка без логистики, реквизита и актёров, готовый ролик за дни вместо недель — и при этом картинка, которая цепляет с первого кадра и повышает конверсию рекламы за счёт «дорогого» визуала. Формат универсален и подходит под любую нишу — от товаров до услуг: везде, где нужен яркий, динамичный имиджевый ролик премиум-уровня без бюджета большого продакшна.', 'Energy, light, the perfect frame — a hero in motion, striking shots, editing like a national-level commercial. A shoot like that usually means paying for the location, actors, a camera team and gear for action scenes — the bill easily hits millions, plus weeks of approvals and editing. Here you get the same wow in a matter of days, with no set. The film sells emotion — and emotion is what advertising runs on, whether it is cars, tech, real estate or services. Benefit: production costs drop several times over, with no logistics, props or actors, and a finished film in days instead of weeks — a picture that hooks from the first frame and lifts conversion through a premium look. The format fits any niche, from products to services: anywhere you need a bright, dynamic, premium brand film without a big-studio budget.'],
+            ['Яркий, добрый, запоминающийся визуал — как из полнометражного мультфильма, только без студии анимации, армии аниматоров и месяцев рендера. Обычно такая анимация — это команда художников, аниматоров, композиторов и полгода производства на минуту хронометража. Здесь тот же уровень «мультяшной магии» — за дни, а не месяцы. Подходит и для детского контента (сказки, обучающие ролики, развлекательный сторителлинг), и для бренд-персонажа, который станет лицом компании в рекламе, соцсетях или на упаковке. Выгода: мультипликационный персонаж — это доверие с первых секунд (мультики обходят «баннерную слепоту» и нравятся всем возрастам), а собственный анимированный герой работает на бренд годами и обходится в разы дешевле классической студийной анимации (этот мультфильм набрал более 1,5 млн просмотров в Фейсбуке). Идеально для брендов, которые хотят «очеловечить» продукт через персонажа, и для тех, кому нужен тёплый, семейный визуал без затрат на анимационную студию.', 'Bright, warm, memorable visuals — as if from a feature cartoon, only without an animation studio, an army of animators and months of rendering. Animation like this usually means artists, animators, composers and half a year of production per minute. Here you get the same cartoon magic in days, not months. It works for kids’ content (fairy tales, educational films, entertainment) and for a brand character that can live in ads, social media or packaging. Benefit: an animated character builds trust from the first seconds, and your own hero can serve the brand for years at a fraction of studio animation cost (this cartoon reached more than 1.5 million views on Facebook). Ideal for brands that want to humanize a product through a character, and for anyone who needs a warm, family look without an animation studio.'],
+            ['От атмосферных пейзажей до драматичных сцен с героем, снятых будто камерой голливудского оператора — глубина кадра, свет, композиция и настроение уровня полнометражного кино или трейлера к блокбастеру. Обычно это дорогостоящая локация, операторская техника для кино, команда света и грейдинг на постпродакшне. Здесь тот же кинематографичный «вау-эффект» достигается без выезда на натуру и без бюджета киностудии — любая локация, любое время суток, любая эпичность в кадре создаётся за считаные часы. Выгода: такой визуал сразу поднимает восприятие продукта или бренда на уровень «серьёзного игрока» — зритель подсознательно доверяет качественной картинке больше, а кинематографичный ролик работает и как имиджевое видео, и как эмоциональный трейлер к запуску, и как обложка проекта, которая выделяет среди конкурентов с типовым контентом. Идеально для тех, кому нужен премиальный, дорогой визуал — без затрат на киносъёмку.', 'From atmospheric landscapes to dramatic scenes with a hero, shot as if by a Hollywood DP — depth, light, composition and the mood of a feature or a blockbuster trailer. That usually means an expensive location, cinema cameras, a lighting crew and grading in post. Here the same cinematic wow is reached without a field shoot and without a studio budget — any place, any time of day, any epic scale in a matter of hours. Benefit: the look immediately raises a product or brand to “serious player” status — viewers trust a quality picture more, and a cinematic film works as a brand piece, an emotional launch trailer and a project cover that stands out from generic content. Ideal when you need a premium, expensive look without the cost of a film shoot.'],
+            ['2+ ГОДА РАБОТЫ С НЕЙРОСЕТЯМИ.   СТАЖИРОВКА В ПРОГРАММЕ «КРЕАТОР» (ФАБРИКА ТВОРЦОВ ВЯЧЕСЛАВА ХОХЛОВА, KHS) И ОБУЧЕНИЕ ПО AI-РЕЖИССУРЕ У ЭРАДЖА НИДОЕВА В ПРОДАКШЕНЕ FILMWAY AI И В ШКОЛЕ FINE.COURSES ЮЛИИ КИСЕЛЕВОЙ НА КУРСЕ «ПРОФЕССИЯ: ИИ-РЕЖИССЁР».   РАБОТА «ПОД КЛЮЧ» ОТ КОНЦЕПЦИИ ДО АДАПТАЦИИ ПОД РАЗНЫЕ ФОРМАТЫ', '2+ YEARS WORKING WITH NEURAL NETWORKS.   INTERNSHIP IN THE “CREATOR” PROGRAM (VYACHESLAV KHOKHLOV’S FABRIKA TVORTSOV, KHS) AND AI-DIRECTING TRAINING WITH ERADJ NIDOEV AT FILMWAY AI AND AT YULIA KISELEVA’S FINE.COURSES IN THE “PROFESSION: AI DIRECTOR” COURSE.   TURNKEY WORK FROM CONCEPT TO ADAPTATION FOR DIFFERENT FORMATS'],
+            ['Видение режиссёра, скорость ИИ — создание видео, которое хочется смотреть до конца и ждать продолжения.', 'A director’s vision, AI speed — videos you want to watch to the end and wait for more.'],
+            ['Даю согласие на обработку моих персональных данных', 'I consent to the processing of my personal data'],
+            ['Отметьте согласие на обработку персональных данных.', 'Please accept the privacy consent.'],
+            ['Заявка отправлена. Окно закроется.', 'Request sent. This window will close.'],
+            ['Заполните имя, почту и телефон.', 'Please fill in your name, email and phone.'],
+            ['Адаптации под Reels, Shorts, TikTok и др.', 'Adaptations for Reels, Shorts, TikTok and more'],
+            ['Нажмите, чтобы включить звук →', 'Click to unmute →'],
+            ['Смотреть ещё раз', 'Watch again'],
+            ['Смотреть шоу-рил со звуком →', 'Watch showreel with sound →'],
+            ['Смотреть шоу-рил со звуком', 'Watch showreel with sound'],
+            ['Продолжить со звуком →', 'Continue with sound →'],
+            ['Показать работы спиралью', 'Show works as a spiral'],
+            ['Показать работы списком', 'Show works as a list'],
+            ['ИИ-генерация · Концепция и промптинг', 'AI generation · Concept and prompting'],
+            ['AI-fashion · Концепция и промптинг', 'AI-fashion · Concept and prompting'],
+            ['AI-клип · Концепция и режиссура', 'AI music video · Concept and directing'],
+            ['AI-реклама · Концепция и режиссура', 'AI advertising · Concept and directing'],
+            ['1,5 млн+ просмотров · AI-анимация', '1.5M+ views · AI animation'],
+            ['AI-cinema · Концепция и режиссура', 'AI-cinema · Concept and directing'],
+            ['Кинематографичные кадры', 'Cinematic frames'],
+            ['5–10 концепций и сценарий', '5–10 concepts and a script'],
+            ['Исследование конкурентов', 'Competitor research'],
+            ['За 3–5 дней вы получаете:', 'In 3–5 days you get:'],
+            ['Давайте создадим эффективный', 'Let’s create an effective'],
+            ['Оставьте контакты', 'Leave your contacts'],
+            ['Написать письмо', 'Write an email'],
+            ['Почтовая программа', 'Mail app'],
+            ['Яндекс Почта', 'Yandex Mail'],
+            ['Отправляю заявку…', 'Sending your request…'],
+            ['Реалистичное видео', 'Realistic video'],
+            ['Музыкальный клип', 'Music video'],
+            ['Рекламный ролик', 'Commercial'],
+            ['Контент-продюсер', 'Content producer'],
+            ['AI-рекламная система', 'AI advertising system'],
+            ['Смотреть работы', 'View works'],
+            ['Портфолио / 2026', 'Portfolio / 2026'],
+            ['Россия, весь мир', 'Russia, worldwide'],
+            ['Начать проект', 'Start a project'],
+            ['Оставить заявку', 'Leave a request'],
+            ['Связаться →', 'Get in touch →'],
+            ['( 01 ) Обо мне', '( 01 ) About'],
+            ['( 02 ) Работы', '( 02 ) Works'],
+            ['( 03 ) Контакты', '( 03 ) Contacts'],
+            ['AI-проект вместе', 'AI project together'],
+            ['AI-проект', 'AI project'],
+            ['Фешн-стиль', 'Fashion style'],
+            ['Мультфильм', 'Cartoon'],
+            ['СОФЬЯ ТОЛСТЫХ', 'SOFYA TOLSTYKH'],
+            ['Софья Толстых', 'Sofya Tolstykh'],
+            ['Звук включён', 'Sound on'],
+            ['Звук выключен', 'Sound off'],
+            ['AI-РЕЖИССЕР', 'AI DIRECTOR'],
+            ['Обо мне', 'About'],
+            ['Контакты', 'Contacts'],
+            ['Портфолио', 'Portfolio'],
+            ['Моя группа в Telegram', 'My Telegram group'],
+            ['Отправка…', 'Sending…'],
+            ['Отправить', 'Send'],
+            ['Закрыть ✕', 'Close ✕'],
+            ['Закрыть', 'Close'],
+            ['спираль', 'spiral'],
+            ['список', 'list'],
+            ['Работы', 'Works'],
+            ['Меню', 'Menu'],
+            ['Россия', 'Russia'],
+            ['Готово', 'Done'],
+            ['Телефон', 'Phone'],
+            ['Почта', 'Email'],
+            ['Имя', 'Name'],
+            ['СОФЬЯ', 'SOFYA'],
+            ['ТОЛСТЫХ', 'TOLSTYKH']
+          ];
+          var lang = 'ru';
+          function maps() {
+            var list = lang === 'en' ? pairs.map(function (p) { return [p[0], p[1]]; }) : pairs.map(function (p) { return [p[1], p[0]]; });
+            list.sort(function (a, b) { return b[0].length - a[0].length; });
+            return list;
+          }
+          function tr(s) {
+            if (s == null || s === '') return s;
+            var list = maps();
+            var ns = String(s).replace(/\\s+/g, ' ').trim();
+            var i;
+            for (i = 0; i < list.length; i++) {
+              if (list[i][0].replace(/\\s+/g, ' ').trim() === ns) return list[i][1];
+            }
+            var out = String(s);
+            for (i = 0; i < list.length; i++) {
+              if (list[i][0] && list[i][0].length >= 6 && out.indexOf(list[i][0]) !== -1) out = out.split(list[i][0]).join(list[i][1]);
+            }
+            return out;
+          }
+          window.__tr = tr;
+          function skip(el) {
+            if (!el || !el.closest) return true;
+            if (el.closest('[data-lang-switch]')) return true;
+            if (el.closest('[data-depth-text]')) return true;
+            var t = el.tagName;
+            return t === 'SCRIPT' || t === 'STYLE' || t === 'TEXTAREA' || t === 'INPUT' || t === 'CODE';
+          }
+          function descEls(root) {
+            return root.querySelectorAll('[style*="font-size:14.85px"], [style*="font-size:13.5px"], [style*="line-height:1.5"][style*="font-size:13px"]');
+          }
+          function formatBenefits(root) {
+            if (!root || !root.querySelectorAll) return;
+            descEls(root).forEach(function (el) {
+              if (skip(el) || el.querySelector('video, img, button, a, input')) return;
+              if (el.querySelector('strong[data-benefit]')) return;
+              var t = el.textContent || '';
+              if (t.indexOf('Выгода:') === -1 && t.indexOf('Benefit:') === -1) return;
+              el.innerHTML = t.replace(/\s+(Выгода:|Benefit:)/g, '<br><br><strong data-benefit="" style="font-weight:700;">$1</strong>');
+            });
+          }
+          function apply(root) {
+            if (!root || !root.querySelectorAll) return;
+            root.querySelectorAll('[data-words], [data-reveal]').forEach(function (el) {
+              if (skip(el)) return;
+              var cur = el.textContent;
+              var next = tr(cur);
+              if (next !== cur) {
+                el.textContent = next;
+                el._words = null;
+              }
+            });
+            descEls(root).forEach(function (el) {
+              if (skip(el) || el.querySelector('video, img, button, a, input')) return;
+              var cur = el.textContent || '';
+              var next = tr(cur);
+              if (next !== cur) el.textContent = next;
+            });
+            var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+            var node, nodes = [];
+            while ((node = walker.nextNode())) nodes.push(node);
+            nodes.forEach(function (n) {
+              var p = n.parentElement;
+              if (!p || skip(p)) return;
+              if (p.closest && (p.closest('[style*="font-size:14.85px"]') || p.closest('[style*="font-size:13.5px"]') || p.closest('strong[data-benefit]'))) return;
+              var next = tr(n.nodeValue);
+              if (next !== n.nodeValue) n.nodeValue = next;
+            });
+            root.querySelectorAll('[data-title], [data-meta], [aria-label]').forEach(function (el) {
+              if (skip(el)) return;
+              ['data-title', 'data-meta', 'aria-label'].forEach(function (a) {
+                var v = el.getAttribute(a);
+                if (!v) return;
+                var n = tr(v);
+                if (n !== v) el.setAttribute(a, n);
+              });
+            });
+            document.title = tr('Софья Толстых');
+            document.documentElement.lang = lang === 'en' ? 'en' : 'ru';
+            document.documentElement.setAttribute('data-lang', lang);
+            formatBenefits(root);
+            if (window.__formatAboutBreak) window.__formatAboutBreak();
+            if (window.__syncDepthText) window.__syncDepthText();
+          }
+          function paint() {
+            document.querySelectorAll('[data-lang-switch] [data-lang]').forEach(function (b) {
+              var on = b.getAttribute('data-lang') === lang;
+              b.setAttribute('aria-pressed', on ? 'true' : 'false');
+              b.style.color = on ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.4)';
+              b.style.textDecoration = on ? 'underline' : 'none';
+            });
+          }
+          function setLang(next) {
+            if (next !== 'en' && next !== 'ru') return;
+            lang = next;
+            try { localStorage.setItem('site-lang', lang); } catch (e) {}
+            paint();
+            apply(document.body);
+          }
+          window.__setSiteLang = setLang;
+          document.addEventListener('click', function (e) {
+            var btn = e.target && e.target.closest && e.target.closest('[data-lang-switch] [data-lang]');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            setLang(btn.getAttribute('data-lang'));
+          }, true);
+          try { if (localStorage.getItem('site-lang') === 'en') lang = 'en'; } catch (e) {}
+          function boot() { paint(); if (lang === 'en') apply(document.body); else formatBenefits(document.body); }
+          boot();
+          [400, 1200, 2800].forEach(function (ms) { setTimeout(boot, ms); });
+          var timer = 0;
+          new MutationObserver(function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+              formatBenefits(document.body);
+              if (lang === 'en') apply(document.body);
+            }, 40);
+          }).observe(document.documentElement, { childList: true, subtree: true });
+        })();
+      <\/script>`;
+      template = template.replace('</body></html>', i18nRuntime + '</body></html>');
+      template = template.replace(
+        'А по факту — это результат работы нейросети и правильного промпта. Идеально для рекламных роликов',
+        'А по факту — это результат работы нейросети и правильного промпта. Выгода: идеально для рекламных роликов'
+      );
+      template = template.split(
+        'в разы дешевле. Ты получаешь контент, который сразу поднимает восприятие бренда'
+      ).join(
+        'в разы дешевле. Выгода: Ты получаешь контент, который сразу поднимает восприятие бренда'
       );
       if (template.indexOf('id="boot-hide"') === -1) {
         template = template.replace(
           '</head>',
-          '<style id="boot-hide">sc-if:not(:defined){display:none!important;}[style*="z-index:9700"]{display:none!important;}html.lightbox-open [style*="z-index:9700"]{display:flex!important;}x-dc:not(:defined),helmet:not(:defined){display:contents!important;}body{cursor:auto!important;}</style></head>'
+          '<style id="boot-hide"></style></head>'
         );
       }
       templateElement.textContent = JSON.stringify(template);
