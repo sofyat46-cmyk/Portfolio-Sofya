@@ -1063,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!document.getElementById('about-bio-justify')) {
               const stl = document.createElement('style');
               stl.id = 'about-bio-justify';
-              stl.textContent = '#about [data-about-bio]{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;}#about [data-about-last]{display:block;text-align:left;text-align-last:left;}';
+              stl.textContent = '#about [data-about-bio]{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto;}#about [data-about-last]{display:block;text-align:left;text-align-last:left;}@media (max-width:768px),(max-aspect-ratio:3/4){#about{min-height:auto !important;overflow:visible !important;}#about .about-showreel{position:relative !important;left:auto !important;top:auto !important;transform:none !important;width:100% !important;max-width:100% !important;margin-bottom:40px;}#about .about-layout{padding-left:0 !important;width:100% !important;max-width:none !important;}}';
               document.head.appendChild(stl);
             }
             document.querySelectorAll('#about [data-words]').forEach(function (el) {
@@ -1122,6 +1122,38 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
           }
           window.__formatAboutBreak = formatAboutBreak;
+          function layoutAbout() {
+            const about = document.getElementById('about');
+            const reel = document.querySelector('#about .about-showreel');
+            const layout = document.querySelector('#about .about-layout');
+            if (!about || !reel || !layout) return;
+            const w = window.innerWidth || 0;
+            const h = window.innerHeight || 1;
+            const stack = w <= 768 || (w / h < 0.75);
+            if (stack) {
+              about.style.setProperty('min-height', 'auto', 'important');
+              about.style.setProperty('overflow', 'visible', 'important');
+              reel.style.setProperty('position', 'relative', 'important');
+              reel.style.setProperty('left', 'auto', 'important');
+              reel.style.setProperty('top', 'auto', 'important');
+              reel.style.setProperty('transform', 'none', 'important');
+              reel.style.setProperty('width', '100%', 'important');
+              reel.style.setProperty('max-width', '100%', 'important');
+              reel.style.setProperty('margin-bottom', '40px', 'important');
+              layout.style.setProperty('padding-left', '0px', 'important');
+              layout.style.setProperty('width', '100%', 'important');
+            } else {
+              about.style.removeProperty('min-height');
+              about.style.removeProperty('overflow');
+              ['position', 'left', 'top', 'transform', 'width', 'max-width', 'margin-bottom'].forEach(function (p) { reel.style.removeProperty(p); });
+              layout.style.setProperty('padding-left', '66.666%', 'important');
+              layout.style.removeProperty('width');
+              layout.style.removeProperty('max-width');
+            }
+          }
+          window.__layoutAbout = layoutAbout;
+          window.addEventListener('resize', function () { layoutAbout(); });
+          [120, 400, 1000, 2200].forEach(function (ms) { setTimeout(layoutAbout, ms); });
           function formatBenefitEls() {
             document.querySelectorAll('[data-lightbox-desc], [style*="z-index:9700"] div').forEach(function (el) {
               if (el.querySelector('div, video, button, img, a, input, source')) return;
@@ -1142,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', async function() {
               el.innerHTML = raw.replace(/\s*(Выгода:|Benefit:)/g, '<br><br><strong data-benefit="" style="font-weight:700;">$1</strong>');
             });
           }
-          new MutationObserver(function () { formatBenefitEls(); formatAboutBreak(); fitLightbox(); }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+          new MutationObserver(function () { formatBenefitEls(); formatAboutBreak(); layoutAbout(); fitLightbox(); }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
           function fitLightbox() {
             const overlay = document.querySelector('[style*="z-index:9700"]');
             if (!overlay || overlay.clientWidth < 40) return;
@@ -1544,6 +1576,14 @@ document.addEventListener('DOMContentLoaded', async function() {
       template = template.replace(
         '<div style="flex:0 1 340px;min-width:260px;display:flex;flex-direction:column;justify-content:center;gap:16px;border-left:1px solid var(--line);padding-left:clamp(18px,2vw,32px);">',
         '<div data-lightbox-panel="" style="flex:1 1 420px;min-width:280px;max-width:520px;display:flex;flex-direction:column;justify-content:flex-start;gap:12px;border-left:1px solid var(--line);padding-left:clamp(16px,2vw,28px);max-height:90vh;overflow-y:auto;">'
+      );
+      template = template.replace(
+        'class="about-layout" style="max-width:1400px;margin:0 auto;padding-left:66.666%;box-sizing:border-box;"',
+        'class="about-layout" style="max-width:1400px;margin:0 auto;padding-left:66.666%;box-sizing:border-box;"'
+      );
+      template = template.replace(
+        '.about-layout { padding-left:0 !important; }\n  }',
+        '.about-layout { padding-left:0 !important; }\n  }\n  @media (max-aspect-ratio: 3/4) {\n    #about { min-height:auto !important; overflow:visible !important; }\n    .about-showreel { position:relative !important;left:auto !important;top:auto !important;transform:none !important;width:100% !important;max-width:100% !important;margin-bottom:40px; }\n    .about-layout { padding-left:0 !important; width:100% !important; }\n  }'
       );
       if (template.indexOf('data-lb-player') === -1) {
         template = template.replace(
